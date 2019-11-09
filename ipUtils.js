@@ -1,4 +1,6 @@
-import { Address4, Address6 } from "ip-address";
+var ipAdd = require("ip-address");
+var Address4 = ipAdd.Address4;
+var Address6 = ipAdd.Address6;
 
 const ip = {
 
