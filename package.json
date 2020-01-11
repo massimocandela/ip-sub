@@ -20,6 +20,6 @@
   "author": "Massimo Candela",
   "license": "MIT",
   "dependencies": {
-    "ip-address": "^6.1.0"
+    "ip-address": "^6.2.0"
   }
 }
