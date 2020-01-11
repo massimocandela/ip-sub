@@ -1,6 +1,8 @@
-var ipAdd = require("ip-address");
-var Address4 = ipAdd.Address4;
-var Address6 = ipAdd.Address6;
+const ipAdd = require("ip-address");
+const Address4 = ipAdd.Address4;
+const Address6 = ipAdd.Address6;
+
+const cache = {};
 
 const ip = {
 
@@ -50,7 +52,13 @@ const ip = {
     toDecimal: function(ip) {
         let bytes = "";
         if (ip.indexOf(":") === -1) {
-            bytes = ip.split(".").map(ip => parseInt(ip).toString(2).padStart(8, '0')).join("");
+            bytes = ip.split(".")
+                .map(segment => {
+                    if (!cache[segment]) {
+                        cache[segment] = parseInt(segment).toString(2).padStart(8, '0');
+                    }
+                    return cache[segment];
+                }).join("");
         } else {
             bytes = ip.split(":").filter(ip => ip !== "").map(ip => parseInt(ip, 16).toString(2).padStart(16, '0')).join("");
         }
