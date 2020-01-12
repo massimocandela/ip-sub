@@ -6,18 +6,28 @@ const cache = {};
 
 const ip = {
 
+    getPrefixAndNetmask: function(prefix) {
+        let bits, ip;
+
+        for (let n=prefix.length - 1; n>=0; n--) {
+            if (prefix[n] === '/') {
+                ip = prefix.slice(0, n);
+                bits = parseInt(prefix.slice(n + 1));
+                return [ip, bits];
+            }
+        }
+        throw new Error("Not valid prefix");
+    },
+
     isValidPrefix: function(prefix){
         let bits, ip;
 
         try {
-            if (prefix.indexOf("/") !== -1) {
-                const components = prefix.split("/");
-                ip = components[0];
-                bits = parseInt(components[1]);
-            } else {
-                return false;
-            }
 
+            const components = this.getPrefixAndNetmask(prefix);
+
+            ip = components[0];
+            bits = components[1];
             if (ip.indexOf(":") === -1) {
                 return this.isValidIP(ip) && (bits >= 0 && bits <= 32);
             } else {
@@ -43,8 +53,8 @@ const ip = {
     },
 
     sortByPrefixLength: function (a, b) {
-        const netA = a.split("/")[1];
-        const netB = b.split("/")[1];
+        const netA = this.getPrefixAndNetmask(a)[1];
+        const netB = this.getPrefixAndNetmask(b)[1];
 
         return parseInt(netA) - parseInt(netB);
     },
@@ -67,7 +77,7 @@ const ip = {
     },
 
     getNetmask: function(prefix) {
-        const components = prefix.split("/");
+        const components = this.getPrefixAndNetmask(prefix);
         const ip = components[0];
         const bits = components[1];
 
