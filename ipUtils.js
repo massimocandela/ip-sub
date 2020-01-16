@@ -59,9 +59,10 @@ const ip = {
         return parseInt(netA) - parseInt(netB);
     },
 
-    toDecimal: function(ip) {
+    toDecimalOld: function(ip) {
         let bytes = "";
         if (ip.indexOf(":") === -1) {
+
             bytes = ip.split(".")
                 .map(segment => {
                     if (!cache[segment]) {
@@ -72,6 +73,66 @@ const ip = {
         } else {
             bytes = ip.split(":").filter(ip => ip !== "").map(ip => parseInt(ip, 16).toString(2).padStart(16, '0')).join("");
         }
+
+        return bytes;
+    },
+
+    _v6Pad: function(ip){
+        return parseInt(ip, 16).toString(2).padStart(16, '0');
+    },
+
+    _v4Pad: function(ip){
+        return parseInt(ip).toString(2).padStart(8, '0');
+    },
+
+    expandIPv6: function(ip) {
+        let count = 0;
+        for(let i = 0; i<ip.length; i++)
+            if(ip[i] == ':')
+                count++;
+
+        if (count != 7) {
+            const extra = ':' + (new Array(8 - count).fill(0)).join(':') + ':';
+            ip = ip.replace("::", extra);
+            if (ip[0] == ':')
+                ip = '0' + ip;
+            if (ip[ip.length - 1] == ':')
+                ip += '0';
+        }
+        return ip;
+    },
+
+    toDecimal: function(ip) {
+        let bytes = "";
+        let pad, splitter;
+        let point = 0;
+
+        if (ip.indexOf(":") === -1) {
+            pad = this._v4Pad;
+            splitter = ".";
+        } else {
+            pad = this._v6Pad;
+            splitter = ":";
+            ip = this.expandIPv6(ip);
+        }
+
+        for (let n=1; n<ip.length; n++) {
+            if (ip[n] == splitter) {
+
+                const segment = ip.slice(point, n);
+                if (cache[segment] == undefined) {
+                    cache[segment] = pad(segment);
+                }
+                bytes += cache[segment];
+                point = n + 1;
+            }
+        }
+
+        const segment = ip.slice(point);
+        if (cache[segment] == undefined) {
+            cache[segment] = pad(segment);
+        }
+        bytes += cache[segment];
 
         return bytes;
     },
