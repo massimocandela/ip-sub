@@ -8,7 +8,7 @@
     "url": "https://github.com/massimocandela/ip-sub"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/mocha --exit tests"
   },
   "keywords": [
     "ip",
@@ -20,6 +20,9 @@
   "author": "Massimo Candela",
   "license": "MIT",
   "dependencies": {
-    "ip-address": "^6.2.0"
+    "chai": "^4.2.0",
+    "chai-subset": "^1.6.0",
+    "ip-address": "^6.2.0",
+    "mocha": "^7.0.0"
   }
 }
