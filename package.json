@@ -1,11 +1,14 @@
 {
   "name": "ip-sub",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A set of utilities for IP/prefix validation and subnet matching.",
   "main": "ipUtils.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/massimocandela/ip-sub"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.com/"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --exit tests"

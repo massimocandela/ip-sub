@@ -125,7 +125,6 @@ const ip = {
         }
     },
 
-
     _isEqualIP: function(ip1, ip2) {
         return this._expandIP(ip1) === this._expandIP(ip2);
     },
