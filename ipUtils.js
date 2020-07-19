@@ -2,7 +2,10 @@ const ipAdd = require("ip-address");
 const Address4 = ipAdd.Address4;
 const Address6 = ipAdd.Address6;
 
-const cache = {};
+const cache = {
+    v4: {},
+    v6: {}
+};
 
 const ip = {
 
@@ -28,7 +31,7 @@ const ip = {
 
             ip = components[0];
             bits = components[1];
-            if (ip.indexOf(":") === -1) {
+            if (this.getAddressFamily(ip) === 4) {
                 return this.isValidIP(ip) && (bits >= 0 && bits <= 32);
             } else {
                 return this.isValidIP(ip) && (bits >= 0 && bits <= 128);
@@ -42,7 +45,7 @@ const ip = {
     isValidIP: function(ip) {
 
         try {
-            if (ip.indexOf(":") === -1) {
+            if (this.getAddressFamily(ip) === 4) {
                 return new Address4(ip).isValid();
             } else {
                 return new Address6(ip).isValid();
@@ -72,11 +75,11 @@ const ip = {
     },
 
     expandIP: function(ip) {
-      if (this.isValidIP(ip)) {
-          return this._expandIP(ip);
-      } else {
-          throw new Error("Not valid IP");
-      }
+        if (this.isValidIP(ip)) {
+            return this._expandIP(ip);
+        } else {
+            throw new Error("Not valid IP");
+        }
     },
 
     _expandIPv4: function(ip) {
@@ -93,18 +96,28 @@ const ip = {
     },
 
     _expandIPv6: function(ip) {
-        let count = 0;
-        for(let i = 0; i<ip.length; i++)
-            if(ip[i] === ':')
-                count++;
+        const segments = ip.split(":");
+        const count = segments.length - 1;
+
+        ip = segments
+            .map(segment => {
+                if (segment.length && segment == 0) { // Weak equality
+                    return "0";
+                } else {
+                    return segment || "";
+                }
+            })
+            .join(":");
 
         if (count !== 7) {
             const extra = ':' + (new Array(8 - count).fill(0)).join(':') + ':';
             ip = ip.replace("::", extra);
-            if (ip[0] === ':')
+            if (ip[0] === ':') {
                 ip = '0' + ip;
-            if (ip[ip.length - 1] === ':')
+            }
+            if (ip[ip.length - 1] === ':') {
                 ip += '0';
+            }
         }
         return ip;
     },
@@ -144,34 +157,37 @@ const ip = {
         let bytes = "";
         let pad, splitter;
         let point = 0;
+        let internalCache;
 
-        if (ip.indexOf(":") === -1) {
+        if (this.getAddressFamily(ip) === 4) {
             pad = this._v4Pad;
             splitter = ".";
             ip = this._expandIPv4(ip);
+            internalCache = cache.v4;
         } else {
             pad = this._v6Pad;
             splitter = ":";
             ip = this._expandIPv6(ip);
+            internalCache = cache.v6;
         }
 
         for (let n=1; n<ip.length; n++) {
-            if (ip[n] == splitter) {
+            if (ip[n] === splitter) {
 
                 const segment = ip.slice(point, n);
-                if (cache[segment] == undefined) {
-                    cache[segment] = pad(segment);
+                if (internalCache[segment] === undefined) {
+                    internalCache[segment] = pad(segment);
                 }
-                bytes += cache[segment];
+                bytes += internalCache[segment];
                 point = n + 1;
             }
         }
 
         const segment = ip.slice(point);
-        if (cache[segment] == undefined) {
-            cache[segment] = pad(segment);
+        if (internalCache[segment] === undefined) {
+            internalCache[segment] = pad(segment);
         }
-        bytes += cache[segment];
+        bytes += internalCache[segment];
 
         return bytes;
     },
@@ -183,7 +199,7 @@ const ip = {
 
         let binaryRoot;
 
-        if (ip.indexOf(":") === -1){
+        if (this.getAddressFamily(ip) === 4){
             binaryRoot = this.toDecimal(ip).padEnd(32, '0').slice(0, bits);
         } else {
             binaryRoot = this.toDecimal(ip).padEnd(128, '0').slice(0, bits);
@@ -194,11 +210,12 @@ const ip = {
     },
 
     isSubnetBinary: (prefixContainer, prefixContained) => {
-        return prefixContained != prefixContainer && prefixContained.startsWith(prefixContainer);
+        return prefixContained !== prefixContainer && prefixContained.startsWith(prefixContainer);
     },
 
     isSubnet: function (prefixContainer, prefixContained) {
-        return this.isSubnetBinary(this.getNetmask(prefixContainer), this.getNetmask(prefixContained));
+        return this.getAddressFamily(prefixContainer) === this.getAddressFamily(prefixContained) &&
+            this.isSubnetBinary(this.getNetmask(prefixContainer), this.getNetmask(prefixContained));
     }
 
 };

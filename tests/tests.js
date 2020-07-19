@@ -26,6 +26,36 @@ describe("Tests", function() {
                     prefix: "211.130.152.0/22",
                     subPrefix: true
                 }
+            ],
+
+            "23.20.0.0/14": [
+                {
+                    prefix: "23.11.254.0/23",
+                    subPrefix: false
+                },
+                {
+                    prefix: "23.11.244.0/22",
+                    subPrefix: false
+                },
+                {
+                    prefix: "23.11.16.0/20",
+                    subPrefix: false
+                }
+            ],
+
+            "201:11:123::/40": [
+                {
+                    prefix: "201:11:123::/48",
+                    subPrefix: true
+                },
+                {
+                    prefix: "201:db8:123::/48",
+                    subPrefix: false
+                },
+                {
+                    prefix: "201.11.123.0/24",
+                    subPrefix: false
+                }
             ]
         };
 
@@ -72,7 +102,6 @@ describe("Tests", function() {
         const previous = list[0];
         for (let prefix of list.slice(1)) {
             expect(ipUtils.isSubnet(prefix, previous)).to.equal(true);
-
         }
     });
 
@@ -91,19 +120,25 @@ describe("Tests", function() {
 
         expect(ipUtils.isEqualPrefix("2001:db8:123::/48", "2001:db8:123::/48")).to.equal(true);
         expect(ipUtils.isEqualPrefix("2001:db8:123::/48", "2001:db8:123::/49")).to.equal(false);
-        expect(ipUtils.isEqualPrefix("2001:db8:123::/48", "2001:db8:124::/48")).to.equal(false);
+        expect(ipUtils.isEqualPrefix("2001:db8::/48", "2001:db8:0000::/48")).to.equal(true);
 
         expect(ipUtils.isEqualPrefix("127.0.0.0/8", "127.0.0.0/8")).to.equal(true);
         expect(ipUtils._isEqualPrefix("127/8", "127.0.0.0/8")).to.equal(true);
 
         expect(ipUtils._expandIP("127")).to.equal("127.0.0.0");
+    });
 
+    describe("netmask test - cache mixup", function () {
+        expect(ipUtils.getNetmask("2001:11::/64")).to.equal("0010000000000001000000000001000100000000000000000000000000000000");
+        expect(ipUtils.getNetmask("127.11.0.0/22")).to.equal("0111111100001011000000");
     });
 
     describe("espansion", function () {
         expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
         expect(ipUtils._expandIP("127")).to.equal("127.0.0.0");
         expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
+        expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0::"));
+        expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0000::"));
     });
 
 
