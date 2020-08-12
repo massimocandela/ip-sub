@@ -21,7 +21,7 @@ It implements the following methods.
 
 * getAddressFamily
 
-* toDecimal
+* toBinary
 
 * getNetmask
 

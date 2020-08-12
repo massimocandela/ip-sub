@@ -153,7 +153,7 @@ const ip = {
         return (ip.indexOf(":") === -1) ? 4 : 6;
     },
 
-    toDecimal: function(ip) {
+    toBinary: function(ip) {
         let bytes = "";
         let pad, splitter;
         let point = 0;
@@ -200,9 +200,9 @@ const ip = {
         let binaryRoot;
 
         if (this.getAddressFamily(ip) === 4){
-            binaryRoot = this.toDecimal(ip).padEnd(32, '0').slice(0, bits);
+            binaryRoot = this.toBinary(ip).padEnd(32, '0').slice(0, bits);
         } else {
-            binaryRoot = this.toDecimal(ip).padEnd(128, '0').slice(0, bits);
+            binaryRoot = this.toBinary(ip).padEnd(128, '0').slice(0, bits);
         }
 
         return binaryRoot;

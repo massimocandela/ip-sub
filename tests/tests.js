@@ -1,12 +1,36 @@
-var chai = require("chai");
-var ipUtils = require("..//ipUtils");
-var chaiSubset = require('chai-subset');
+const chai = require("chai");
+const ipUtils = require("..//ipUtils");
+const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-var expect = chai.expect;
+const expect = chai.expect;
+
+const generateTestList = () => {
+    const prefix = "211.130.0.0/16";
+    const ip = "211.130";
+    const bits = 16;
+    const subs = [];
+
+    const binary = ipUtils.getNetmask(prefix);
+
+    for (let n=0; n<=255; n++) {
+        for (let f=0; f<=255; f++) {
+            for (let s=bits + 1; s<=32; s++) {
+                const prefix = [ip, n, f].join(".") + "/" + s;
+                subs.push({
+                    prefix,
+                    binary: ipUtils.getNetmask(prefix)
+                });
+            }
+        }
+    }
+
+    return { prefix, binary, subs };
+}
 
 describe("Tests", function() {
+    const { prefix, subs, binary } = generateTestList();
 
-    describe("subprefix test", function () {
+    it("subprefix test", function () {
 
         const list = {
             "211.130.0.0/16": [
@@ -63,32 +87,25 @@ describe("Tests", function() {
             for (let sub of list[prefix]) {
                 expect(ipUtils.isSubnet(prefix, sub.prefix)).to.equal(sub.subPrefix);
             }
-
         }
 
     });
 
+    it("subprefix range test", function () {
 
-    describe("subprefix range test", function () {
-
-        const prefix = "211.130.0.0/16";
-        const ip = "211.130";
-        const bits = 16;
-
-
-        for (let n=0; n<=255; n++) {
-            for (let f=0; f<=255; f++) {
-                for (let s=bits + 1; s<=32; s++) {
-
-                    const sub = [ip, n, f].join(".") + "/" + s;
-                    expect(ipUtils.isSubnet(prefix, sub)).to.equal(true);
-                }
-            }
+        for (let sub of subs) {
+            expect(ipUtils.isSubnet(prefix, sub.prefix)).to.equal(true);
         }
+    }).timeout(10000);
 
-    });
+    it("subprefix range test - binary (performance)", function () {
 
-    describe("sort by prefix length", function () {
+        for (let sub of subs) {
+            expect(ipUtils.isSubnetBinary(binary, sub.binary)).to.equal(true);
+        }
+    }).timeout(10000);
+
+    it("sort by prefix length", function () {
 
         const ip = "211.130.0.0";
         const list = [];
@@ -105,7 +122,7 @@ describe("Tests", function() {
         }
     });
 
-    describe("equality", function () {
+    it("equality", function () {
         expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8:123:0::0:0")).to.equal(true);
         expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8:123::")).to.equal(true);
         expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8:123::0")).to.equal(true);
@@ -128,19 +145,17 @@ describe("Tests", function() {
         expect(ipUtils._expandIP("127")).to.equal("127.0.0.0");
     });
 
-    describe("netmask test - cache mixup", function () {
+    it("netmask test - cache mixup", function () {
         expect(ipUtils.getNetmask("2001:11::/64")).to.equal("0010000000000001000000000001000100000000000000000000000000000000");
         expect(ipUtils.getNetmask("127.11.0.0/22")).to.equal("0111111100001011000000");
     });
 
-    describe("espansion", function () {
+    it("espansion", function () {
         expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
         expect(ipUtils._expandIP("127")).to.equal("127.0.0.0");
         expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0::"));
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0000::"));
     });
-
-
 
 });
