@@ -216,6 +216,53 @@ const ip = {
     isSubnet: function (prefixContainer, prefixContained) {
         return this.getAddressFamily(prefixContainer) === this.getAddressFamily(prefixContained) &&
             this.isSubnetBinary(this.getNetmask(prefixContainer), this.getNetmask(prefixContained));
+    },
+
+    cidrToRange: function (cidr) {
+        if (typeof(cidr) === "string") {
+            const af = this.getAddressFamily(cidr);
+            const addr = (af === 4) ? new Address4(cidr) : new Address6(cidr);
+
+            return [addr.startAddress().address, addr.endAddress().address];
+        }
+    },
+
+    ipRangeToCidr: function (ip1, ip2){
+        const af = this.getAddressFamily(ip1);
+        let blockSize, ipSizeCheck, splitChar;
+
+        if (af === 4) {
+            blockSize = 8;
+            ipSizeCheck = 32;
+            splitChar = ".";
+        } else {
+            blockSize = 16;
+            ipSizeCheck = 64;
+            splitChar = ":";
+        }
+
+        const ip1Blocks = ip1.split(splitChar);
+        const ip2Blocks = ip2.split(splitChar);
+
+        let bits = 0;
+
+        for (let n=0; n<= ip1Blocks.length; n++) {
+            if (ip1Blocks[n] === ip2Blocks[n]) {
+                break;
+            } else {
+                bits += blockSize;
+            }
+        }
+
+        for (let b=bits; b <= ipSizeCheck; b++){
+            const tested = `${ip1}/${b}`;
+            const range = this.cidrToRange(tested);
+            if (range[0] === ip1 && range[1] === ip2) {
+                return tested;
+            }
+        }
+
+        return null;
     }
 
 };
