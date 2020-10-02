@@ -223,13 +223,16 @@ const ip = {
             const af = this.getAddressFamily(cidr);
             const addr = (af === 4) ? new Address4(cidr) : new Address6(cidr);
 
-            return [addr.startAddress().address, addr.endAddress().address];
+            return [this.expandIP(addr.startAddress().address), this.expandIP(addr.endAddress().address)];
         }
     },
 
     ipRangeToCidr: function (ip1, ip2){
         const af = this.getAddressFamily(ip1);
         let blockSize, ipSizeCheck, splitChar;
+
+        ip1 = this.expandIP(ip1);
+        ip2 = this.expandIP(ip2);
 
         if (af === 4) {
             blockSize = 8;
@@ -248,9 +251,9 @@ const ip = {
 
         for (let n=0; n<= ip1Blocks.length; n++) {
             if (ip1Blocks[n] === ip2Blocks[n]) {
-                break;
-            } else {
                 bits += blockSize;
+            } else {
+                break;
             }
         }
 
