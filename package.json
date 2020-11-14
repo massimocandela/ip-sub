@@ -28,6 +28,6 @@
     "mocha": "^8.1.2"
   },
   "dependencies": {
-    "ip-address": "^6.3.0"
+    "ip-address": "^6.4.0"
   }
 }
