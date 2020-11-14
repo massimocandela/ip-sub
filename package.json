@@ -5,13 +5,14 @@
   "main": "ipUtils.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/massimocandela/ip-sub"
+    "url": "git+https://github.com/massimocandela/ip-sub.git"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.com/"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --exit tests"
+    "test": "./node_modules/.bin/mocha --exit tests",
+    "release": "dotenv release-it"
   },
   "keywords": [
     "ip",
@@ -25,9 +26,56 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-subset": "^1.6.0",
-    "mocha": "^8.1.2"
+    "dotenv-cli": "^4.0.0",
+    "mocha": "^8.1.2",
+    "release-it": "^14.2.1"
   },
   "dependencies": {
     "ip-address": "^6.4.0"
+  },
+  "release-it": {
+    "hooks": {
+      "before:init": [
+        "npm ci"
+      ],
+      "after:bump": "npm run build",
+      "after:release": [
+        "echo Successfully released ${name} v${version} to ${repo.repository}.",
+        "rm -r bin/"
+      ]
+    },
+    "git": {
+      "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}...${to}",
+      "requireCleanWorkingDir": true,
+      "requireBranch": "master",
+      "requireUpstream": true,
+      "requireCommits": false,
+      "addUntrackedFiles": false,
+      "commit": true,
+      "commitMessage": "Release v${version}",
+      "commitArgs": [],
+      "tag": true,
+      "tagName": null,
+      "tagAnnotation": "Release v${version}",
+      "tagArgs": [],
+      "push": true,
+      "pushArgs": [
+        "--follow-tags"
+      ],
+      "pushRepo": ""
+    },
+    "gitlab": {
+      "release": false
+    },
+    "npm": {
+      "publish": true
+    },
+    "github": {
+      "release": true,
+      "releaseName": "v${version}",
+      "tokenRef": "GITHUB_TOKEN",
+      "origin": null,
+      "skipChecks": false
+    }
   }
 }
