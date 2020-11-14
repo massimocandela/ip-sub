@@ -150,12 +150,22 @@ describe("Tests", function() {
         expect(ipUtils.getNetmask("127.11.0.0/22")).to.equal("0111111100001011000000");
     });
 
-    it("espansion", function () {
+    it("expansion", function () {
         expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
         expect(ipUtils._expandIP("127")).to.equal("127.0.0.0");
         expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0::"));
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0000::"));
     });
+
+
+    it("range to cidr", function () {
+        expect(ipUtils.ipRangeToCidr("216.168.129.0", "216.168.130.255"))
+            .to.have.members(["216.168.129.0/24", "216.168.130.0/24"]);
+
+        expect(ipUtils.ipRangeToCidr("216.168.129.0", "216.168.130.254").sort())
+            .to.have.members(["216.168.129.0/24", "216.168.130.0/25", "216.168.130.128/26", "216.168.130.192/27", "216.168.130.224/28", "216.168.130.240/29", "216.168.130.248/30", "216.168.130.252/31", "216.168.130.254/32"].sort());
+
+    }).timeout(20000);
 
 });

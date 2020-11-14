@@ -7,6 +7,21 @@ const cache = {
     v6: {}
 };
 
+const spaceConfig = {
+    v4: {
+        blockSize: 8,
+        ipSizeCheck: 32,
+        splitChar: ".",
+        blockMax: 255
+    },
+    v6: {
+        blockSize: 16,
+        ipSizeCheck: 64,
+        splitChar: ":",
+        blockMax: "ffff"
+    }
+};
+
 const ip = {
 
     getIpAndNetmask: function(prefix) {
@@ -63,11 +78,11 @@ const ip = {
     },
 
     _v6Pad: function(ip){
-        return parseInt(ip, 16).toString(2).padStart(16, '0');
+        return parseInt(ip, 16).toString(2).padStart(spaceConfig.v6.blockSize, '0');
     },
 
     _v4Pad: function(ip){
-        return parseInt(ip).toString(2).padStart(8, '0');
+        return parseInt(ip).toString(2).padStart(spaceConfig.v4.blockSize, '0');
     },
 
     _expandIP: function(ip) {
@@ -96,7 +111,7 @@ const ip = {
     },
 
     _expandIPv6: function(ip) {
-        const segments = ip.split(":");
+        const segments = ip.split(spaceConfig.v6.splitChar);
         const count = segments.length - 1;
 
         ip = segments
@@ -107,7 +122,7 @@ const ip = {
                     return segment || "";
                 }
             })
-            .join(":");
+            .join(spaceConfig.v6.splitChar);
 
         if (count !== 7) {
             const extra = ':' + (new Array(8 - count).fill(0)).join(':') + ':';
@@ -150,7 +165,7 @@ const ip = {
     },
 
     getAddressFamily: function(ip) {
-        return (ip.indexOf(":") === -1) ? 4 : 6;
+        return (ip.indexOf(spaceConfig.v6.splitChar) === -1) ? 4 : 6;
     },
 
     toBinary: function(ip) {
@@ -161,12 +176,12 @@ const ip = {
 
         if (this.getAddressFamily(ip) === 4) {
             pad = this._v4Pad;
-            splitter = ".";
+            splitter = spaceConfig.v4.splitChar;
             ip = this._expandIPv4(ip);
             internalCache = cache.v4;
         } else {
             pad = this._v6Pad;
-            splitter = ":";
+            splitter = spaceConfig.v6.splitChar;
             ip = this._expandIPv6(ip);
             internalCache = cache.v6;
         }
@@ -196,17 +211,25 @@ const ip = {
         const components = this.getIpAndNetmask(prefix);
         const ip = components[0];
         const bits = components[1];
+        const af = this.getAddressFamily(ip);
 
-        let binaryRoot;
+        return this._getNetmask(ip, bits, af);
+    },
 
-        if (this.getAddressFamily(ip) === 4){
-            binaryRoot = this.toBinary(ip).padEnd(32, '0').slice(0, bits);
+    _getNetmask: function(ip, bits, af) {
+        if (af === 4){
+            return this.toBinary(ip).padEnd(32, '0').slice(0, bits);
         } else {
-            binaryRoot = this.toBinary(ip).padEnd(128, '0').slice(0, bits);
+            return this.toBinary(ip).padEnd(128, '0').slice(0, bits);
         }
+    },
 
-        return binaryRoot;
-
+    _getPaddedNetmask: function (binary, af) {
+        if (af === 4){
+            return binary.padEnd(32, '0');
+        } else {
+            return binary.padEnd(128, '0');
+        }
     },
 
     isSubnetBinary: (prefixContainer, prefixContained) => {
@@ -218,16 +241,146 @@ const ip = {
             this.isSubnetBinary(this.getNetmask(prefixContainer), this.getNetmask(prefixContained));
     },
 
-    cidrToRange: function (cidr) {
-        if (typeof(cidr) === "string") {
-            const af = this.getAddressFamily(cidr);
-            const addr = (af === 4) ? new Address4(cidr) : new Address6(cidr);
+    cidrToRange: function (cidr) { // Not optimized!
+        const af = this.getAddressFamily(cidr);
 
-            return [this.expandIP(addr.startAddress().address), this.expandIP(addr.endAddress().address)];
+        return this._cidrToRange(cidr, af);
+    },
+
+    _cidrToRange: function (cidr, af) { // Not optimized!
+        const addr = (af === 4) ? new Address4(cidr) : new Address6(cidr);
+
+        return [this.expandIP(addr.startAddress().address), this.expandIP(addr.endAddress().address)];
+    },
+
+    getComponents: function (ip) {
+        const af = this.getAddressFamily(ip);
+        ip = this.expandIP(ip);
+
+        return this._getComponents(ip, af);
+    },
+
+    _getComponents: function (ip, af) {
+        return ip.split((af === 4) ? spaceConfig.v4.splitChar : spaceConfig.v6.splitChar);
+    },
+
+    fromBinary: function (ip, af) {
+        let splitter, blockSize, mapper;
+
+        if (af === 4) {
+            blockSize = spaceConfig.v4.blockSize;
+            splitter = spaceConfig.v4.splitChar;
+            mapper = function (bin) {
+                return parseInt(bin, 2);
+            }
+        } else {
+            blockSize = spaceConfig.v6.blockSize;
+            splitter = spaceConfig.v6.splitChar;
+            ip = this.expandIP(ip);
+            mapper = function (bin) {
+                return parseInt(bin, 2).toString(16);
+            }
+        }
+        const components = ip.match(new RegExp('.{1,' + blockSize + '}', 'g')).map(mapper);
+
+        return components.join(splitter);
+    },
+
+    getSubPrefixes: function (prefix, recursive, netMaskIndex, af) {
+        const [ip, bits] = this.getIpAndNetmask(prefix);
+        let out = [];
+        netMaskIndex = netMaskIndex || {};
+
+        const newbits = bits + 1;
+        const position = Math.floor(bits / spaceConfig[`v${af}`].blockSize);
+
+        if (af === 4) {
+            let components = this._getComponents(ip, af);
+
+            if (bits >= spaceConfig.v4.ipSizeCheck) {
+                return [];
+            }
+            while (components[position] < spaceConfig.v4.blockMax) {
+                const ipTmp = components.join(spaceConfig.v4.splitChar);
+                const msk = this._getNetmask(ipTmp, newbits, af);
+                if (!netMaskIndex[msk]) {
+                    out.push(ipTmp + "/" + newbits);
+                    netMaskIndex[msk] = true;
+                }
+
+                components[position] ++;
+            }
+
+        } else {
+            let components = this._getComponents(this.expandIP(ip), af)
+            if (bits >= spaceConfig.v6.ipSizeCheck) {
+                return [];
+            }
+            let item = parseInt(components[position], spaceConfig.v6.blockSize);
+            const max = parseInt(spaceConfig.v6.blockMax, spaceConfig.v6.blockSize);
+
+            while(item < max) {
+                const prefixTmp = `${components.join(spaceConfig.v6.splitChar)}/${newbits}`;
+                const msk = this.getNetmask(prefixTmp);
+                if (!netMaskIndex[msk]) {
+                    out.push(prefixTmp);
+                    netMaskIndex[msk] = true;
+                }
+
+                item ++;
+                components[position] = item.toString(16);
+            }
+
+        }
+
+        if (recursive) {
+            return [].concat.apply([], out.concat(out.map(prefix => this.getSubPrefixes(prefix, true, netMaskIndex, af))));
+        } else {
+            return out;
         }
     },
 
-    ipRangeToCidr: function (ip1, ip2){
+    getAllSiblings: function (prefix) {
+        const [ip, bits] = this.getIpAndNetmask(prefix);
+        const af = this.getAddressFamily(ip);
+        this._getAllSiblings(ip, bits, af, bits);
+    },
+
+    _getAllSiblings: function (ip, bits, af, parentBits) {
+        let next = this._getNextSiblingPrefix(ip, bits, af, parentBits);
+        const out = [];
+
+        while (next) {
+            out.push(next);
+            next = this._getNextSiblingPrefix(...next, parentBits)
+        }
+
+        return out.map(i => i[0] + "/" + i[1]);
+    },
+
+    _getNextSiblingPrefix: function (ip, bits, af, parentBits) {
+        parentBits = parentBits || bits - 1;
+        ip = this.expandIP(ip);
+        let msk = this.getNetmask(ip + "/" + bits);
+
+        if (af === 4) {
+            let value = parseInt(msk, 2) + 1;
+            const result = value.toString(2);
+
+            if (msk.slice(0, parentBits) === result.slice(0, parentBits)) {
+                return [this.fromBinary(this._getPaddedNetmask(result, 4), 4), bits, af];
+            } else {
+                return null;
+            }
+        } else {
+            // TODO
+
+            // let value = parseInt(msk, 16) + "1".toString(16);
+            // return [this.fromBinary(this._getPaddedNetmask(value.toString(2), 6), 6), bits, af];
+        }
+    },
+
+    ipRangeToCidr: function (ip1, ip2) { // Not optimized!
         const af = this.getAddressFamily(ip1);
         let blockSize, ipSizeCheck, splitChar;
 
@@ -235,13 +388,13 @@ const ip = {
         ip2 = this.expandIP(ip2);
 
         if (af === 4) {
-            blockSize = 8;
-            ipSizeCheck = 32;
-            splitChar = ".";
+            blockSize = spaceConfig.v4.blockSize;
+            ipSizeCheck = spaceConfig.v4.ipSizeCheck;
+            splitChar = spaceConfig.v4.splitChar;
         } else {
-            blockSize = 16;
-            ipSizeCheck = 64;
-            splitChar = ":";
+            blockSize = spaceConfig.v6.blockSize;
+            ipSizeCheck = spaceConfig.v6.ipSizeCheck;
+            splitChar = spaceConfig.v6.splitChar;
         }
 
         const ip1Blocks = ip1.split(splitChar);
@@ -257,17 +410,43 @@ const ip = {
             }
         }
 
+        return this._compositeRange(ip1, ip2, bits, af, ipSizeCheck);
+    },
+
+    _compositeRange: function (ip1, ip2, bits, af, ipSizeCheck) {
+        let mPrefixes = [];
+
         for (let b=bits; b <= ipSizeCheck; b++){
             const tested = `${ip1}/${b}`;
-            const range = this.cidrToRange(tested);
+            mPrefixes.push(tested);
+            mPrefixes = mPrefixes.concat(this._getAllSiblings(ip1, b, af, bits));
+            const range = this._cidrToRange(tested, af);
             if (range[0] === ip1 && range[1] === ip2) {
-                return tested;
+                return [tested];
             }
         }
 
-        return null;
-    }
+        const out = [];
+        const start = this.toBinary(ip1);
+        const stop = this.toBinary(ip2);
+        const sorted = mPrefixes
+            .filter(prefix => {
+                const range = this._cidrToRange(prefix, af).map((ip) => this.toBinary(ip));
 
+                return  range[0] >= start && range[1] <= stop;
+            })
+            .sort((a, b) => this.sortByPrefixLength(a, b));
+
+        let pTmp = sorted.pop();
+        while (pTmp) {
+            if (!sorted.some(prefix => this.isSubnet(prefix, pTmp))) {
+                out.push(pTmp);
+            }
+            pTmp = sorted.pop();
+        }
+
+        return out;
+    }
 };
 
 module.exports = ip;
