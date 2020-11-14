@@ -1,6 +1,6 @@
 {
   "name": "ip-sub",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "A set of utilities for IP/prefix validation and subnet matching.",
   "main": "ipUtils.js",
   "repository": {
@@ -38,10 +38,8 @@
       "before:init": [
         "npm ci"
       ],
-      "after:bump": "npm run build",
       "after:release": [
-        "echo Successfully released ${name} v${version} to ${repo.repository}.",
-        "rm -r bin/"
+        "echo Successfully released ${name} v${version} to ${repo.repository}."
       ]
     },
     "git": {
