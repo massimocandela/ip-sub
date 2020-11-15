@@ -1,5 +1,5 @@
 const chai = require("chai");
-const ipUtils = require("..//ipUtils");
+const ipUtils = require("../ipUtils");
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 const expect = chai.expect;

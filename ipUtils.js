@@ -38,18 +38,21 @@ const ip = {
     },
 
     isValidPrefix: function(prefix){
+        return this._isValidPrefix(prefix, this.getAddressFamily(prefix));
+    },
+
+    _isValidPrefix: function(prefix, af){
         let bits, ip;
 
         try {
-
             const components = this.getIpAndNetmask(prefix);
 
             ip = components[0];
             bits = components[1];
-            if (this.getAddressFamily(ip) === 4) {
-                return this.isValidIP(ip) && (bits >= 0 && bits <= 32);
+            if (af === 4) {
+                return this._isValidIP(ip, af) && (bits >= 0 && bits <= 32);
             } else {
-                return this.isValidIP(ip) && (bits >= 0 && bits <= 128);
+                return this._isValidIP(ip, af) && (bits >= 0 && bits <= 128);
             }
 
         } catch (e) {
@@ -58,9 +61,13 @@ const ip = {
     },
 
     isValidIP: function(ip) {
+        return this._isValidIP(ip, this.getAddressFamily(ip));
+    },
+
+    _isValidIP: function(ip, af) {
 
         try {
-            if (this.getAddressFamily(ip) === 4) {
+            if (af === 4) {
                 return new Address4(ip).isValid();
             } else {
                 return new Address6(ip).isValid();
@@ -85,8 +92,8 @@ const ip = {
         return parseInt(ip).toString(2).padStart(spaceConfig.v4.blockSize, '0');
     },
 
-    _expandIP: function(ip) {
-        return (this.getAddressFamily(ip) === 4) ? this._expandIPv4(ip) : this._expandIPv6(ip);
+    _expandIP: function(ip, af) {
+        return ((af || this.getAddressFamily(ip)) === 4) ? this._expandIPv4(ip) : this._expandIPv6(ip);
     },
 
     expandIP: function(ip) {
@@ -146,7 +153,7 @@ const ip = {
     },
 
     isEqualPrefix: function(prefix1, prefix2) {
-        if (this.isValidIP(prefix1) && this.isValidIP(prefix2)) {
+        if (this.isValidPrefix(prefix1) && this.isValidPrefix(prefix2)) {
             return this._isEqualPrefix(prefix1, prefix2);
         } else {
             throw new Error("Not valid IP");
@@ -168,13 +175,17 @@ const ip = {
         return (ip.indexOf(spaceConfig.v6.splitChar) === -1) ? 4 : 6;
     },
 
-    toBinary: function(ip) {
+    toBinary: function (ip) {
+        return this._toBinary(ip, this.getAddressFamily(ip));
+    },
+
+    _toBinary: function(ip, af) {
         let bytes = "";
         let pad, splitter;
         let point = 0;
         let internalCache;
 
-        if (this.getAddressFamily(ip) === 4) {
+        if (af === 4) {
             pad = this._v4Pad;
             splitter = spaceConfig.v4.splitChar;
             ip = this._expandIPv4(ip);
@@ -218,9 +229,9 @@ const ip = {
 
     _getNetmask: function(ip, bits, af) {
         if (af === 4){
-            return this.toBinary(ip).padEnd(32, '0').slice(0, bits);
+            return this._toBinary(ip, af).padEnd(32, '0').slice(0, bits);
         } else {
-            return this.toBinary(ip).padEnd(128, '0').slice(0, bits);
+            return this._toBinary(ip, af).padEnd(128, '0').slice(0, bits);
         }
     },
 
@@ -237,8 +248,17 @@ const ip = {
     },
 
     isSubnet: function (prefixContainer, prefixContained) {
-        return this.getAddressFamily(prefixContainer) === this.getAddressFamily(prefixContained) &&
-            this.isSubnetBinary(this.getNetmask(prefixContainer), this.getNetmask(prefixContained));
+        const p1af = this.getAddressFamily(prefixContainer);
+        const p2af = this.getAddressFamily(prefixContained);
+
+        return p1af === p2af && this._isSubnet(prefixContainer, prefixContained, p1af, p2af);
+    },
+
+    _isSubnet: function (prefixContainer, prefixContained, p1af, p2af) {
+        const components1 = this.getIpAndNetmask(prefixContainer);
+        const components2 = this.getIpAndNetmask(prefixContained);
+
+        return this.isSubnetBinary(this._getNetmask(components1[0], components1[1], p1af), this._getNetmask(components2[0], components2[1], p2af));
     },
 
     cidrToRange: function (cidr) { // Not optimized!
@@ -250,12 +270,12 @@ const ip = {
     _cidrToRange: function (cidr, af) { // Not optimized!
         const addr = (af === 4) ? new Address4(cidr) : new Address6(cidr);
 
-        return [this.expandIP(addr.startAddress().address), this.expandIP(addr.endAddress().address)];
+        return [this._expandIP(addr.startAddress().address, af), this._expandIP(addr.endAddress().address, af)];
     },
 
     getComponents: function (ip) {
         const af = this.getAddressFamily(ip);
-        ip = this.expandIP(ip);
+        ip = this._expandIP(ip, af);
 
         return this._getComponents(ip, af);
     },
@@ -276,7 +296,7 @@ const ip = {
         } else {
             blockSize = spaceConfig.v6.blockSize;
             splitter = spaceConfig.v6.splitChar;
-            ip = this.expandIP(ip);
+            ip = this._expandIP(ip, af);
             mapper = function (bin) {
                 return parseInt(bin, 2).toString(16);
             }
@@ -312,16 +332,17 @@ const ip = {
             }
 
         } else {
-            let components = this._getComponents(this.expandIP(ip), af)
+            let components = this._getComponents(this._expandIP(ip, af), af)
             if (bits >= spaceConfig.v6.ipSizeCheck) {
                 return [];
             }
             let item = parseInt(components[position], spaceConfig.v6.blockSize);
             const max = parseInt(spaceConfig.v6.blockMax, spaceConfig.v6.blockSize);
 
-            while(item < max) {
-                const prefixTmp = `${components.join(spaceConfig.v6.splitChar)}/${newbits}`;
-                const msk = this.getNetmask(prefixTmp);
+            while (item < max) {
+                const ipTmp = components.join(spaceConfig.v6.splitChar);
+                const prefixTmp = `${ipTmp}/${newbits}`;
+                const msk = this._getNetmask(ipTmp, newbits, af);
                 if (!netMaskIndex[msk]) {
                     out.push(prefixTmp);
                     netMaskIndex[msk] = true;
@@ -360,8 +381,8 @@ const ip = {
 
     _getNextSiblingPrefix: function (ip, bits, af, parentBits) {
         parentBits = parentBits || bits - 1;
-        ip = this.expandIP(ip);
-        let msk = this.getNetmask(ip + "/" + bits);
+        ip = this._expandIP(ip, af);
+        let msk = this._getNetmask(ip, bits, af);
 
         if (af === 4) {
             let value = parseInt(msk, 2) + 1;
@@ -384,8 +405,8 @@ const ip = {
         const af = this.getAddressFamily(ip1);
         let blockSize, ipSizeCheck, splitChar;
 
-        ip1 = this.expandIP(ip1);
-        ip2 = this.expandIP(ip2);
+        ip1 = this._expandIP(ip1, af);
+        ip2 = this._expandIP(ip2, af);
 
         if (af === 4) {
             blockSize = spaceConfig.v4.blockSize;
@@ -427,11 +448,11 @@ const ip = {
         }
 
         const out = [];
-        const start = this.toBinary(ip1);
-        const stop = this.toBinary(ip2);
+        const start = this._toBinary(ip1, af);
+        const stop = this._toBinary(ip2, af);
         const sorted = mPrefixes
             .filter(prefix => {
-                const range = this._cidrToRange(prefix, af).map((ip) => this.toBinary(ip));
+                const range = this._cidrToRange(prefix, af).map(ip => this._toBinary(ip, af));
 
                 return  range[0] >= start && range[1] <= stop;
             })
@@ -439,7 +460,7 @@ const ip = {
 
         let pTmp = sorted.pop();
         while (pTmp) {
-            if (!sorted.some(prefix => this.isSubnet(prefix, pTmp))) {
+            if (!sorted.some(prefix => this._isSubnet(prefix, pTmp, af, af))) {
                 out.push(pTmp);
             }
             pTmp = sorted.pop();
