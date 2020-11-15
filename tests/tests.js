@@ -125,7 +125,7 @@ describe("Tests", function() {
     it("equality", function () {
         expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8:123:0::0:0")).to.equal(true);
         expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8:123::")).to.equal(true);
-        expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8:123::0")).to.equal(true);
+        expect(ipUtils.isEqualIP("2001:db8:123::", "2001:DB8:123::0")).to.equal(true);
         expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8::123:0")).to.equal(false);
         expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8::123")).to.equal(false);
 

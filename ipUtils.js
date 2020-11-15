@@ -118,6 +118,7 @@ const ip = {
     },
 
     _expandIPv6: function(ip) {
+        ip = ip.toLowerCase();
         const segments = ip.split(spaceConfig.v6.splitChar);
         const count = segments.length - 1;
 
