@@ -122,6 +122,22 @@ describe("Tests", function() {
         }
     });
 
+    it("validity", function () {
+        expect(ipUtils.isValidIP("2001:db8:123::")).to.equal(true);
+        expect(ipUtils.isValidIP("2001:db8:123::/64")).to.equal(false);
+        expect(ipUtils.isValidIP("127.0.0.1")).to.equal(true);
+        expect(ipUtils.isValidIP("127.0.0.1/32")).to.equal(false);
+
+        expect(ipUtils.isValidIP("127.0.0.290")).to.equal(false);
+        expect(ipUtils.isValidIP("127.0")).to.equal(false);
+        expect(ipUtils.isValidIP("2001::db8:123::")).to.equal(false);
+
+        expect(ipUtils.isValidPrefix("2001:db8:123::/64")).to.equal(true);
+        expect(ipUtils.isValidPrefix("2001:db8:123::/129")).to.equal(false);
+        expect(ipUtils.isValidPrefix("127.0.0.1/32")).to.equal(true);
+        expect(ipUtils.isValidPrefix("127.0.0.1/64")).to.equal(false);
+    });
+
     it("equality", function () {
         expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8:123:0::0:0")).to.equal(true);
         expect(ipUtils.isEqualIP("2001:db8:123::", "2001:db8:123::")).to.equal(true);
@@ -152,6 +168,7 @@ describe("Tests", function() {
 
     it("expansion", function () {
         expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
+        expect(ipUtils.expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
         expect(ipUtils._expandIP("127")).to.equal("127.0.0.0");
         expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0::"));
