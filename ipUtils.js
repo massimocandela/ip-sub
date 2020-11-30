@@ -219,11 +219,11 @@ const ip = {
         return bytes;
     },
 
-    getNetmask: function(prefix) {
+    getNetmask: function(prefix, af) {
         const components = this.getIpAndNetmask(prefix);
         const ip = components[0];
         const bits = components[1];
-        const af = this.getAddressFamily(ip);
+        af = af || this.getAddressFamily(ip);
 
         return this._getNetmask(ip, bits, af);
     },
