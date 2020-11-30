@@ -65,13 +65,16 @@ const ip = {
     },
 
     _isValidIP: function(ip, af) {
-
         try {
-            if (af === 4) {
-                return new Address4(ip).isValid();
-            } else {
-                return new Address6(ip).isValid();
+            if (!ip.includes("/")) {
+                if (af === 4) {
+                    return new Address4(ip).isValid();
+                } else {
+                    return new Address6(ip).isValid();
+                }
             }
+
+            return false;
         } catch (e) {
             return false;
         }
@@ -93,12 +96,15 @@ const ip = {
     },
 
     _expandIP: function(ip, af) {
-        return ((af || this.getAddressFamily(ip)) === 4) ? this._expandIPv4(ip) : this._expandIPv6(ip);
+        af = af || this.getAddressFamily(ip);
+        return (af === 4) ? this._expandIPv4(ip) : this._expandIPv6(ip);
     },
 
     expandIP: function(ip) {
-        if (this.isValidIP(ip)) {
-            return this._expandIP(ip);
+        const af = this.getAddressFamily(ip);
+
+        if (this._isValidIP(ip, af)) {
+            return this._expandIP(ip, af);
         } else {
             throw new Error("Not valid IP");
         }
@@ -146,30 +152,34 @@ const ip = {
     },
 
     isEqualIP: function(ip1, ip2) {
-        if (this.isValidIP(ip1) && this.isValidIP(ip2)) {
-            return this._isEqualIP(ip1, ip2);
+        const af1 = this.getAddressFamily(ip1);
+        const af2 = this.getAddressFamily(ip2);
+        if (this._isValidIP(ip1, af1) && this._isValidIP(ip2, af2)) {
+            return af1 === af2 && this._isEqualIP(ip1, ip2, af1);
         } else {
             throw new Error("Not valid IP");
         }
     },
 
     isEqualPrefix: function(prefix1, prefix2) {
-        if (this.isValidPrefix(prefix1) && this.isValidPrefix(prefix2)) {
-            return this._isEqualPrefix(prefix1, prefix2);
+        const af1 = this.getAddressFamily(prefix1);
+        const af2 = this.getAddressFamily(prefix2);
+        if (this._isValidPrefix(prefix1, af1) && this._isValidPrefix(prefix2, af2)) {
+            return af1 === af2 && this._isEqualPrefix(prefix1, prefix2, af1);
         } else {
             throw new Error("Not valid IP");
         }
     },
 
-    _isEqualIP: function(ip1, ip2) {
-        return this._expandIP(ip1) === this._expandIP(ip2);
+    _isEqualIP: function(ip1, ip2, af) {
+        return this._expandIP(ip1, af) === this._expandIP(ip2, af);
     },
 
-    _isEqualPrefix: function(prefix1, prefix2) {
+    _isEqualPrefix: function(prefix1, prefix2, af) {
         const components1 = this.getIpAndNetmask(prefix1);
         const components2 = this.getIpAndNetmask(prefix2);
 
-        return components1[1] === components2[1] && this._isEqualIP(components1[0], components2[0]);
+        return components1[1] === components2[1] && this._isEqualIP(components1[0], components2[0], af);
     },
 
     getAddressFamily: function(ip) {
