@@ -30,9 +30,9 @@ const ip = {
         for (let n=prefix.length - 1; n>=0; n--) {
             if (prefix[n] === '/') {
                 ip = prefix.slice(0, n);
-                bits = parseInt(prefix.slice(n + 1));
+                bits = prefix.slice(n + 1);
                 if (!isNaN(bits)) {
-                    return [ip, bits];
+                    return [ip, parseInt(bits)];
                 }
             }
         }
