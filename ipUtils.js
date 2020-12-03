@@ -31,14 +31,20 @@ const ip = {
             if (prefix[n] === '/') {
                 ip = prefix.slice(0, n);
                 bits = parseInt(prefix.slice(n + 1));
-                return [ip, bits];
+                if (!isNaN(bits)) {
+                    return [ip, bits];
+                }
             }
         }
         throw new Error("Not valid prefix");
     },
 
     isValidPrefix: function(prefix){
-        return this._isValidPrefix(prefix, this.getAddressFamily(prefix));
+        try {
+            return this._isValidPrefix(prefix, this.getAddressFamily(prefix));
+        } catch (error) {
+            return false;
+        }
     },
 
     _isValidPrefix: function(prefix, af){
@@ -61,7 +67,11 @@ const ip = {
     },
 
     isValidIP: function(ip) {
-        return this._isValidIP(ip, this.getAddressFamily(ip));
+        try {
+            return this._isValidIP(ip, this.getAddressFamily(ip));
+        } catch (error) {
+            return false;
+        }
     },
 
     _isValidIP: function(ip, af) {
@@ -183,7 +193,11 @@ const ip = {
     },
 
     getAddressFamily: function(ip) {
-        return (ip.indexOf(spaceConfig.v6.splitChar) === -1) ? 4 : 6;
+        try {
+            return (ip.indexOf(spaceConfig.v6.splitChar) === -1) ? 4 : 6;
+        } catch (error) {
+            throw new Error("Not valid IP or Prefix");
+        }
     },
 
     toBinary: function (ip) {

@@ -123,6 +123,7 @@ describe("Tests", function() {
     });
 
     it("validity", function () {
+        expect(ipUtils.isValidIP(null)).to.equal(false);
         expect(ipUtils.isValidIP("2001:db8:123::")).to.equal(true);
         expect(ipUtils.isValidIP("2001:db8:123::/64")).to.equal(false);
         expect(ipUtils.isValidIP("127.0.0.1")).to.equal(true);
