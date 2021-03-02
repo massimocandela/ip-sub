@@ -78,9 +78,9 @@ const ip = {
         try {
             if (!ip.includes("/")) {
                 if (af === 4) {
-                    return new Address4(ip).isValid();
+                    return Address4.isValid(ip);
                 } else {
-                    return new Address6(ip).isValid();
+                    return Address6.isValid(ip);
                 }
             }
 
