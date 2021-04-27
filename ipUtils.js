@@ -28,11 +28,11 @@ const ip = {
         let bits, ip;
 
         for (let n=prefix.length - 1; n>=0; n--) {
-            if (prefix[n] === '/') {
+            if (prefix[n] == '/') {
                 ip = prefix.slice(0, n);
-                bits = prefix.slice(n + 1);
-                if (!isNaN(bits)) {
-                    return [ip, parseInt(bits)];
+                bits = prefix.slice(n + 1) * 1;
+                if (bits == bits) {
+                    return [ip, bits];
                 }
             }
         }
@@ -223,10 +223,10 @@ const ip = {
         }
 
         for (let n=1; n<ip.length; n++) {
-            if (ip[n] === splitter) {
+            if (ip[n] == splitter) {
 
                 const segment = ip.slice(point, n);
-                if (internalCache[segment] === undefined) {
+                if (internalCache[segment] == undefined) {
                     internalCache[segment] = pad(segment);
                 }
                 bytes += internalCache[segment];
@@ -235,7 +235,7 @@ const ip = {
         }
 
         const segment = ip.slice(point);
-        if (internalCache[segment] === undefined) {
+        if (internalCache[segment] == undefined) {
             internalCache[segment] = pad(segment);
         }
         bytes += internalCache[segment];
