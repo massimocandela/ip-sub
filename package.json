@@ -1,6 +1,6 @@
 {
   "name": "ip-sub",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "description": "A set of utilities for IP/prefix validation and subnet matching.",
   "main": "ipUtils.js",
   "repository": {
