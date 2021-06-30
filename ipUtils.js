@@ -50,6 +50,10 @@ const ip = {
     _isValidPrefix: function(prefix, af){
         let bits, ip;
 
+        if (prefix !== prefix.trim()) {
+            return false;
+        }
+
         try {
             const components = this.getIpAndNetmask(prefix);
 
