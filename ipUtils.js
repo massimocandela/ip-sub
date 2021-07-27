@@ -181,7 +181,7 @@ const ip = {
         if (this._isValidPrefix(prefix1, af1) && this._isValidPrefix(prefix2, af2)) {
             return af1 === af2 && this._isEqualPrefix(prefix1, prefix2, af1);
         } else {
-            throw new Error("Not valid IP");
+            throw new Error("Not valid prefix");
         }
     },
 
