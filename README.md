@@ -5,7 +5,7 @@ A small utility to manipulate prefixes. There are other possible solution on npm
 
 It implements the following methods.
 
-* getIpAndNetmask
+* getIpAndCidr
 
 * isValidPrefix
 
@@ -23,7 +23,7 @@ It implements the following methods.
 
 * toBinary
 
-* getNetmask
+* applyNetmask
 
 * isSubnet
 

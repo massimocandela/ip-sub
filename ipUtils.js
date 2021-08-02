@@ -24,7 +24,7 @@ const spaceConfig = {
 
 const ip = {
 
-    getIpAndNetmask: function(prefix) {
+    getIpAndCidr: function(prefix) {
         let bits, ip;
 
         for (let n=prefix.length - 1; n>=0; n--) {
@@ -247,16 +247,16 @@ const ip = {
         return bytes;
     },
 
-    getNetmask: function(prefix, af) {
+    applyNetmask: function(prefix, af) {
         const components = this.getIpAndNetmask(prefix);
         const ip = components[0];
         const bits = components[1];
         af = af || this.getAddressFamily(ip);
 
-        return this._getNetmask(ip, bits, af);
+        return this._applyNetmask(ip, bits, af);
     },
 
-    _getNetmask: function(ip, bits, af) {
+    _applyNetmask: function(ip, bits, af) {
         if (af === 4){
             return this._toBinary(ip, af).padEnd(32, '0').slice(0, bits);
         } else {
@@ -287,7 +287,7 @@ const ip = {
         const components1 = this.getIpAndNetmask(prefixContainer);
         const components2 = this.getIpAndNetmask(prefixContained);
 
-        return this.isSubnetBinary(this._getNetmask(components1[0], components1[1], p1af), this._getNetmask(components2[0], components2[1], p2af));
+        return this.isSubnetBinary(this._applyNetmask(components1[0], components1[1], p1af), this._applyNetmask(components2[0], components2[1], p2af));
     },
 
     cidrToRange: function (cidr) { // Not optimized!
@@ -351,7 +351,7 @@ const ip = {
             }
             while (components[position] < spaceConfig.v4.blockMax) {
                 const ipTmp = components.join(spaceConfig.v4.splitChar);
-                const msk = this._getNetmask(ipTmp, newbits, af);
+                const msk = this._applyNetmask(ipTmp, newbits, af);
                 if (!netMaskIndex[msk]) {
                     out.push(ipTmp + "/" + newbits);
                     netMaskIndex[msk] = true;
@@ -371,7 +371,7 @@ const ip = {
             while (item < max) {
                 const ipTmp = components.join(spaceConfig.v6.splitChar);
                 const prefixTmp = `${ipTmp}/${newbits}`;
-                const msk = this._getNetmask(ipTmp, newbits, af);
+                const msk = this._applyNetmask(ipTmp, newbits, af);
                 if (!netMaskIndex[msk]) {
                     out.push(prefixTmp);
                     netMaskIndex[msk] = true;
@@ -411,7 +411,7 @@ const ip = {
     _getNextSiblingPrefix: function (ip, bits, af, parentBits) {
         parentBits = parentBits || bits - 1;
         ip = this._expandIP(ip, af);
-        let msk = this._getNetmask(ip, bits, af);
+        let msk = this._applyNetmask(ip, bits, af);
 
         if (af === 4) {
             let value = parseInt(msk, 2) + 1;
@@ -496,6 +496,17 @@ const ip = {
         }
 
         return out;
+    },
+
+    // DEPRECATIONS
+    getIpAndNetmask: function (prefix) {
+        return this.getIpAndCidr(prefix);
+    },
+    getNetmask: function(prefix, af) {
+        return this.applyNetmask(prefix, af);
+    },
+    _getNetmask: function (ip, bits, af) {
+        return this._applyNetmask(ip, bits, af);
     }
 };
 
