@@ -10,7 +10,7 @@ const generateTestList = () => {
     const bits = 16;
     const subs = [];
 
-    const binary = ipUtils.getNetmask(prefix);
+    const binary = ipUtils.applyNetmask(prefix);
 
     for (let n=0; n<=255; n++) {
         for (let f=0; f<=255; f++) {
@@ -18,7 +18,7 @@ const generateTestList = () => {
                 const prefix = [ip, n, f].join(".") + "/" + s;
                 subs.push({
                     prefix,
-                    binary: ipUtils.getNetmask(prefix)
+                    binary: ipUtils.applyNetmask(prefix)
                 });
             }
         }
@@ -165,8 +165,8 @@ describe("Tests", function() {
     });
 
     it("netmask test - cache mixup", function () {
-        expect(ipUtils.getNetmask("2001:11::/64")).to.equal("0010000000000001000000000001000100000000000000000000000000000000");
-        expect(ipUtils.getNetmask("127.11.0.0/22")).to.equal("0111111100001011000000");
+        expect(ipUtils.applyNetmask("2001:11::/64")).to.equal("0010000000000001000000000001000100000000000000000000000000000000");
+        expect(ipUtils.applyNetmask("127.11.0.0/22")).to.equal("0111111100001011000000");
     });
 
     it("expansion", function () {

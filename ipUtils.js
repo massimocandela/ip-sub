@@ -55,7 +55,7 @@ const ip = {
         }
 
         try {
-            const components = this.getIpAndNetmask(prefix);
+            const components = this.getIpAndCidr(prefix);
 
             ip = components[0];
             bits = components[1];
@@ -95,8 +95,8 @@ const ip = {
     },
 
     sortByPrefixLength: function (a, b) {
-        const netA = this.getIpAndNetmask(a)[1];
-        const netB = this.getIpAndNetmask(b)[1];
+        const netA = this.getIpAndCidr(a)[1];
+        const netB = this.getIpAndCidr(b)[1];
 
         return parseInt(netA) - parseInt(netB);
     },
@@ -190,8 +190,8 @@ const ip = {
     },
 
     _isEqualPrefix: function(prefix1, prefix2, af) {
-        const components1 = this.getIpAndNetmask(prefix1);
-        const components2 = this.getIpAndNetmask(prefix2);
+        const components1 = this.getIpAndCidr(prefix1);
+        const components2 = this.getIpAndCidr(prefix2);
 
         return components1[1] === components2[1] && this._isEqualIP(components1[0], components2[0], af);
     },
@@ -248,7 +248,7 @@ const ip = {
     },
 
     applyNetmask: function(prefix, af) {
-        const components = this.getIpAndNetmask(prefix);
+        const components = this.getIpAndCidr(prefix);
         const ip = components[0];
         const bits = components[1];
         af = af || this.getAddressFamily(ip);
@@ -284,8 +284,8 @@ const ip = {
     },
 
     _isSubnet: function (prefixContainer, prefixContained, p1af, p2af) {
-        const components1 = this.getIpAndNetmask(prefixContainer);
-        const components2 = this.getIpAndNetmask(prefixContained);
+        const components1 = this.getIpAndCidr(prefixContainer);
+        const components2 = this.getIpAndCidr(prefixContained);
 
         return this.isSubnetBinary(this._applyNetmask(components1[0], components1[1], p1af), this._applyNetmask(components2[0], components2[1], p2af));
     },
@@ -336,7 +336,7 @@ const ip = {
     },
 
     getSubPrefixes: function (prefix, recursive, netMaskIndex, af) {
-        const [ip, bits] = this.getIpAndNetmask(prefix);
+        const [ip, bits] = this.getIpAndCidr(prefix);
         let out = [];
         netMaskIndex = netMaskIndex || {};
 
@@ -391,7 +391,7 @@ const ip = {
     },
 
     getAllSiblings: function (prefix) {
-        const [ip, bits] = this.getIpAndNetmask(prefix);
+        const [ip, bits] = this.getIpAndCidr(prefix);
         const af = this.getAddressFamily(ip);
         this._getAllSiblings(ip, bits, af, bits);
     },
