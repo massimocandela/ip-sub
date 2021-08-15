@@ -498,6 +498,19 @@ const ip = {
         return out;
     },
 
+    addCidr: function (ipOrPrefix) {
+        if (this.isValidPrefix(ipOrPrefix)) {
+            return ipOrPrefix;
+        } else if (this.isValidIP(ipOrPrefix)) {
+            if (this.getAddressFamily(ipOrPrefix) === 4) {
+                return `${ipOrPrefix}/32`;
+            } else {
+                return `${ipOrPrefix}/128`;
+            }
+        }
+
+    },
+
     // DEPRECATIONS
     getIpAndNetmask: function (prefix) {
         return this.getIpAndCidr(prefix);

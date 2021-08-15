@@ -188,4 +188,25 @@ describe("Tests", function() {
 
     }).timeout(20000);
 
+    it("add cidr", function () {
+        expect(ipUtils.addCidr("216.168.129.0"))
+            .to.equal("216.168.129.0/32");
+
+        expect(ipUtils.addCidr("216.168.129.0/28"))
+            .to.equal("216.168.129.0/28");
+
+        expect(ipUtils.addCidr("216.168.129.0/32"))
+            .to.equal("216.168.129.0/32");
+
+        expect(ipUtils.addCidr("2001:db8:0000::"))
+            .to.equal("2001:db8:0000::/128");
+
+        expect(ipUtils.addCidr("2001:db8:0000::/64"))
+            .to.equal("2001:db8:0000::/64");
+
+        expect(ipUtils.addCidr("2001:db8:0000::/128"))
+            .to.equal("2001:db8:0000::/128");
+
+    }).timeout(20000);
+
 });
