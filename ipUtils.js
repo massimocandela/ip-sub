@@ -12,13 +12,15 @@ const spaceConfig = {
         blockSize: 8,
         ipSizeCheck: 32,
         splitChar: ".",
-        blockMax: 255
+        blockMax: 255,
+        bits: 32
     },
     v6: {
         blockSize: 16,
         ipSizeCheck: 64,
         splitChar: ":",
-        blockMax: "ffff"
+        blockMax: "ffff",
+        bits: 128
     }
 };
 
@@ -60,9 +62,9 @@ const ip = {
             ip = components[0];
             bits = components[1];
             if (af === 4) {
-                return this._isValidIP(ip, af) && (bits >= 0 && bits <= 32);
+                return this._isValidIP(ip, af) && (bits >= 0 && bits <= spaceConfig.v4.bits);
             } else {
-                return this._isValidIP(ip, af) && (bits >= 0 && bits <= 128);
+                return this._isValidIP(ip, af) && (bits >= 0 && bits <= spaceConfig.v6.bits);
             }
 
         } catch (e) {
@@ -258,17 +260,17 @@ const ip = {
 
     _applyNetmask: function(ip, bits, af) {
         if (af === 4){
-            return this._toBinary(ip, af).padEnd(32, '0').slice(0, bits);
+            return this._toBinary(ip, af).padEnd(spaceConfig.v4.bits, '0').slice(0, bits);
         } else {
-            return this._toBinary(ip, af).padEnd(128, '0').slice(0, bits);
+            return this._toBinary(ip, af).padEnd(spaceConfig.v6.bits, '0').slice(0, bits);
         }
     },
 
     _getPaddedNetmask: function (binary, af) {
         if (af === 4){
-            return binary.padEnd(32, '0');
+            return binary.padEnd(spaceConfig.v4.bits, '0');
         } else {
-            return binary.padEnd(128, '0');
+            return binary.padEnd(spaceConfig.v6.bits, '0');
         }
     },
 
@@ -498,14 +500,14 @@ const ip = {
         return out;
     },
 
-    addCidr: function (ipOrPrefix) {
+    toPrefix: function (ipOrPrefix) {
         if (this.isValidPrefix(ipOrPrefix)) {
             return ipOrPrefix;
         } else if (this.isValidIP(ipOrPrefix)) {
             if (this.getAddressFamily(ipOrPrefix) === 4) {
-                return `${ipOrPrefix}/32`;
+                return `${ipOrPrefix}/${spaceConfig.v4.bits}`;
             } else {
-                return `${ipOrPrefix}/128`;
+                return `${ipOrPrefix}/${spaceConfig.v6.bits}`;
             }
         }
 
@@ -520,7 +522,10 @@ const ip = {
     },
     _getNetmask: function (ip, bits, af) {
         return this._applyNetmask(ip, bits, af);
-    }
+    },
+    addCidr: function (prefix) {
+        return this.toPrefix(prefix);
+    },
 };
 
 module.exports = ip;
