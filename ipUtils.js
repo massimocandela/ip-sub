@@ -33,9 +33,7 @@ const ip = {
             if (prefix[n] == '/') {
                 ip = prefix.slice(0, n);
                 bits = prefix.slice(n + 1);
-                if (bits === "") {
-                    throw new Error("Not valid prefix");
-                } else {
+                if (bits !== "") {
                     return [ip, bits];
                 }
             }
