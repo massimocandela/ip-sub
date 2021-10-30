@@ -140,6 +140,8 @@ describe("Tests", function() {
         expect(ipUtils.isValidPrefix("127.0.0.1/32")).to.equal(true);
         expect(ipUtils.isValidPrefix("127.0.0.1/64")).to.equal(false);
         expect(ipUtils.isValidPrefix("204.2.186.0/")).to.equal(false);
+        expect(ipUtils.isValidPrefix("185.5.202.255/32")).to.equal(true);
+        expect(ipUtils.isValidPrefix("185.5.202.0/32")).to.equal(true);
     });
 
     it("equality", function () {
