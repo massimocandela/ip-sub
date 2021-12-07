@@ -122,9 +122,12 @@ const ip = {
 
     getPieces: function(ip) {
         const af = this.getAddressFamily(ip);
-        const splitChar = (af === 4) ? spaceConfig.v4.splitChar : spaceConfig.v6.splitChar;
 
-        return ip.split(splitChar);
+        if (af === 4) {
+            return ip.split(spaceConfig.v4.splitChar).map(i => parseInt(i));
+        } else {
+            return ip.split(spaceConfig.v6.splitChar).map(i => parseInt(i, 16));
+        }
     },
 
     sortByIp: function (ipA, ipB) {
