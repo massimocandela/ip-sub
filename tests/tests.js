@@ -258,7 +258,7 @@ describe("Tests", function() {
 
     }).timeout(20000);
 
-    it("sort prefixes", function () {
+    it("sort prefixes v4", function () {
 
         const ips = [
             "216.168.129.1/24",
@@ -276,6 +276,27 @@ describe("Tests", function() {
             "216.168.129.1/23",
             "216.168.129.1/24",
             "216.168.129.3/24"
+        ];
+
+        expect(ips.sort((a, b) => ipUtils.sortByPrefix(a, b)).join("-"))
+            .to.equal(sorted.join("-"));
+
+    }).timeout(20000);
+
+    it("sort prefixes v6", function () {
+
+        const ips = [
+            "2002:db0:0000::/128",
+            "2001:db1:0000::/128",
+            "2001:db2:0000::/128",
+            "2002:db0:0000::/126",
+        ];
+
+        const sorted = [
+            "2001:db1:0000::/128",
+            "2001:db2:0000::/128",
+            "2002:db0:0000::/126",
+            "2002:db0:0000::/128"
         ];
 
         expect(ips.sort((a, b) => ipUtils.sortByPrefix(a, b)).join("-"))
