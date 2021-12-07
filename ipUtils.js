@@ -103,6 +103,45 @@ const ip = {
         return parseInt(netA) - parseInt(netB);
     },
 
+    sortByPrefix: function (a, b) {
+        const prefixAndNetA = this.getIpAndCidr(a);
+        const prefixAndNetB = this.getIpAndCidr(b);
+        const prefixA = prefixAndNetA[0];
+        const prefixB = prefixAndNetB[0];
+        const netA = prefixAndNetA[1];
+        const netB = prefixAndNetB[1];
+
+        const sortIp = this.sortByIp(prefixA, prefixB);
+
+        if (sortIp === 0) {
+            return parseInt(netA) - parseInt(netB);
+        } else {
+            return sortIp;
+        }
+    },
+
+    getPieces: function(ip) {
+        const af = this.getAddressFamily(ip);
+        const splitChar = (af === 4) ? spaceConfig.v4.splitChar : spaceConfig.v6.splitChar;
+
+        return ip.split(splitChar);
+    },
+
+    sortByIp: function (ipA, ipB) {
+        const piecesA = this.getPieces(ipA);
+        const piecesB = this.getPieces(ipB);
+
+        for (let n=0; n<piecesA.length; n++) {
+            if (piecesA[n] < piecesB[n]) {
+                return -1;
+            } else if (piecesA[n] > piecesB[n]) {
+                return 1;
+            }
+        }
+
+        return 0;
+    },
+
     _v6Pad: function(ip){
         return parseInt(ip, 16).toString(2).padStart(spaceConfig.v6.blockSize, '0');
     },
