@@ -173,10 +173,13 @@ describe("Tests", function() {
     });
 
     it("expansion", function () {
-        expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
-        expect(ipUtils.expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
+        expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:0db8:0123:0000:0000:0000:0000:0000");
+        expect(ipUtils.expandIP("2001:db8:123::", true)).to.equal("2001:db8:123:0:0:0:0:0");
+        expect(ipUtils.expandIP("2001:db8:123::", false)).to.equal("2001:0db8:0123:0000:0000:0000:0000:0000");
+        expect(ipUtils.expandIP("2001:db8:123::")).to.equal("2001:0db8:0123:0000:0000:0000:0000:0000");
         expect(ipUtils._expandIP("127")).to.equal("127.0.0.0");
-        expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:db8:123:0:0:0:0:0");
+        expect(ipUtils.expandIP("2001:db8:123::", true)).to.equal("2001:db8:123:0:0:0:0:0");
+        expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:0db8:0123:0000:0000:0000:0000:0000");
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0::"));
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0000::"));
     });
@@ -304,4 +307,11 @@ describe("Tests", function() {
 
     }).timeout(20000);
 
+
+    it("cidr to range", function () {
+
+        expect(ipUtils.cidrToRange("216.168.236.112/28").join("-")).to.equal("216.168.236.112-216.168.236.127");
+        expect(ipUtils.cidrToRange("2002:db0::/32").join("-")).to.equal("2002:db0:0:0:0:0:0:0-2002:db0:ffff:ffff:ffff:ffff:ffff:ffff");
+
+    });
 });

@@ -31,7 +31,6 @@
     "release-it": "^14.12.4"
   },
   "dependencies": {
-    "ip-address": "^8.1.0"
   },
   "release-it": {
     "hooks": {

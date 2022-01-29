@@ -1,7 +1,3 @@
-const ipAdd = require("ip-address");
-const Address4 = ipAdd.Address4;
-const Address6 = ipAdd.Address6;
-
 const cache = {
     v4: {},
     v6: {}
@@ -13,14 +9,16 @@ const spaceConfig = {
         ipSizeCheck: 32,
         splitChar: ".",
         blockMax: 255,
-        bits: 32
+        bits: 32,
+        regex: new RegExp("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
     },
     v6: {
         blockSize: 16,
         ipSizeCheck: 64,
         splitChar: ":",
         blockMax: "ffff",
-        bits: 128
+        bits: 128,
+        regex: new RegExp("^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})| :((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$")
     }
 };
 
@@ -84,9 +82,9 @@ const ip = {
         try {
             if (!ip.includes("/")) {
                 if (af === 4) {
-                    return Address4.isValid(ip);
+                    return spaceConfig.v4.regex.test(ip);
                 } else {
-                    return Address6.isValid(ip);
+                    return spaceConfig.v6.regex.test(ip);
                 }
             }
 
@@ -153,16 +151,16 @@ const ip = {
         return parseInt(ip).toString(2).padStart(spaceConfig.v4.blockSize, '0');
     },
 
-    _expandIP: function(ip, af) {
+    _expandIP: function(ip, af, shortenedIpv6) {
         af = af || this.getAddressFamily(ip);
-        return (af === 4) ? this._expandIPv4(ip) : this._expandIPv6(ip);
+        return (af === 4) ? this._expandIPv4(ip) : this._expandIPv6(ip, shortenedIpv6);
     },
 
-    expandIP: function(ip) {
+    expandIP: function(ip, shortenedIpv6) {
         const af = this.getAddressFamily(ip);
 
         if (this._isValidIP(ip, af)) {
-            return this._expandIP(ip, af);
+            return this._expandIP(ip, af, shortenedIpv6);
         } else {
             throw new Error("Not valid IP");
         }
@@ -181,7 +179,7 @@ const ip = {
         return ip;
     },
 
-    _expandIPv6: function(ip) {
+    _expandIPv6: function(ip, shortenedIpv6) {
         ip = ip.toLowerCase();
         const segments = ip.split(spaceConfig.v6.splitChar);
         const count = segments.length - 1;
@@ -191,14 +189,16 @@ const ip = {
                 if (segment.length && segment == 0) { // Weak equality
                     return "0";
                 } else {
-                    return segment || "";
+                    return segment || ""
                 }
             })
             .join(spaceConfig.v6.splitChar);
 
         if (count !== 7) {
             const extra = ':' + (new Array(8 - count).fill(0)).join(':') + ':';
+
             ip = ip.replace("::", extra);
+
             if (ip[0] === ':') {
                 ip = '0' + ip;
             }
@@ -206,7 +206,8 @@ const ip = {
                 ip += '0';
             }
         }
-        return ip;
+
+        return shortenedIpv6 ? ip : ip.split(":").map(i => ("0000" + i).slice(-4)).join(":");
     },
 
     isEqualIP: function(ip1, ip2) {
@@ -340,10 +341,24 @@ const ip = {
         return this._cidrToRange(cidr, af);
     },
 
-    _cidrToRange: function (cidr, af) { // Not optimized!
-        const addr = (af === 4) ? new Address4(cidr) : new Address6(cidr);
+    _cidrToRange: function (prefix, af) {
+        const components = this.getIpAndCidr(prefix);
+        const ip = components[0];
+        const bits = components[1];
+        let first, last;
 
-        return [this._expandIP(addr.startAddress().address, af), this._expandIP(addr.endAddress().address, af)];
+        if (af === 4){
+            first = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v4.bits, '0');
+            last = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v4.bits, '1');
+        } else {
+            first = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v6.bits, '0');
+            last = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v6.bits, '1');
+        }
+
+        first = this.fromBinary(first, af);
+        last = this.fromBinary(last, af);
+
+        return [first, last];
     },
 
     getComponents: function (ip) {
@@ -369,7 +384,6 @@ const ip = {
         } else {
             blockSize = spaceConfig.v6.blockSize;
             splitter = spaceConfig.v6.splitChar;
-            ip = this._expandIP(ip, af);
             mapper = function (bin) {
                 return parseInt(bin, 2).toString(16);
             }
