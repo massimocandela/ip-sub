@@ -11,7 +11,9 @@ It implements the following methods.
 
 * `isValidIP` - it returns true/false
 
-* `sortByPrefixLength` - it receives in input an array of prefixes and returns an array sorted by the amount of bits of the netmask (from less specific to more specific)
+* `sortByPrefix` - it is a sorting function for an array or prefixes. It sorts the array based on the entire prefix.
+
+* `sortByPrefixLength` - it is a sorting function for an array or prefixes. It sorts the array based on the amount of bits of the netmask (from less specific to more specific).
 
 * `expandIP` - if you provide something like "127/8", you will receive "127.0.0.0/8". If you provide "2001:db8:123::", you will receive "2001:0db8:0123:0000:0000:0000:0000:0000". In case of IPv6, you can also do `expandIP("2001:db8:123::", true)` to obtain the expanded-shortened version "2001:db8:123:0:0:0:0:0" (without 0 padding).
 
