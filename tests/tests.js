@@ -125,6 +125,8 @@ describe("Tests", function() {
     it("validity", function () {
         expect(ipUtils.isValidIP(null)).to.equal(false);
         expect(ipUtils.isValidIP("2001:db8:123::")).to.equal(true);
+        expect(ipUtils.isValidIP("::")).to.equal(true);
+        expect(ipUtils.isValidIP("::1")).to.equal(true);
         expect(ipUtils.isValidIP("2001:db8:123::/64")).to.equal(false);
         expect(ipUtils.isValidIP("2001:db8:123::/6433")).to.equal(false);
         expect(ipUtils.isValidIP("2001:db8:123::/64ff")).to.equal(false);
@@ -136,6 +138,10 @@ describe("Tests", function() {
         expect(ipUtils.isValidIP("2001::db8:123::")).to.equal(false);
 
         expect(ipUtils.isValidPrefix("2001:db8:123::/64")).to.equal(true);
+        expect(ipUtils.isValidPrefix("::/0")).to.equal(true);
+        expect(ipUtils.isValidPrefix("::/128")).to.equal(true);
+        expect(ipUtils.isValidPrefix("::/129")).to.equal(false);
+        expect(ipUtils.isValidPrefix("::1/0")).to.equal(true);
         expect(ipUtils.isValidPrefix("2001:db8:123::/129")).to.equal(false);
         expect(ipUtils.isValidPrefix("127.0.0.1/32")).to.equal(true);
         expect(ipUtils.isValidPrefix("127.0.0.1/64")).to.equal(false);
