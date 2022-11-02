@@ -138,6 +138,7 @@ describe("Tests", function() {
         expect(ipUtils.isValidIP("2001::db8:123::")).to.equal(false);
 
         expect(ipUtils.isValidPrefix("2001:db8:123::/64")).to.equal(true);
+        expect(ipUtils.isValidPrefix("94.228.208.0/20\tNL\tNL-NH\tAmsterdam")).to.equal(false);
         expect(ipUtils.isValidPrefix("::/0")).to.equal(true);
         expect(ipUtils.isValidPrefix("::/128")).to.equal(true);
         expect(ipUtils.isValidPrefix("::/129")).to.equal(false);

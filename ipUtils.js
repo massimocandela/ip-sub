@@ -31,7 +31,7 @@ const ip = {
             if (prefix[n] == '/') {
                 ip = prefix.slice(0, n);
                 bits = prefix.slice(n + 1);
-                if (bits !== "") {
+                if (bits !== "" && !isNaN(bits)) {
                     return [ip, parseInt(bits)];
                 }
             }
