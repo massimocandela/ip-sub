@@ -473,7 +473,7 @@ const ip = {
 
         if (af === 4) {
             let value = parseInt(msk, 2) + 1;
-            const result = value.toString(2);
+            const result = value.toString(2).padStart(msk.length, "0");
 
             if (msk.slice(0, parentBits) === result.slice(0, parentBits)) {
                 return [this.fromBinary(this._getPaddedNetmask(result, 4), 4), bits, af];
