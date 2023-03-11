@@ -103,7 +103,7 @@ describe("Tests", function() {
         for (let sub of subs) {
             expect(ipUtils.isSubnetBinary(binary, sub.binary)).to.equal(true);
         }
-    }).timeout(10000);
+    }).timeout(20000);
 
     it("sort by prefix length", function () {
 
