@@ -1,3 +1,5 @@
+const { IpAddress, IpRange } = require("cidr-calc");
+
 const cache = {
     v4: {},
     v6: {}
@@ -488,37 +490,8 @@ const ip = {
         }
     },
 
-    ipRangeToCidr: function (ip1, ip2) { // Not optimized!
-        const af = this.getAddressFamily(ip1);
-        let blockSize, ipSizeCheck, splitChar;
-
-        ip1 = this._expandIP(ip1, af);
-        ip2 = this._expandIP(ip2, af);
-
-        if (af === 4) {
-            blockSize = spaceConfig.v4.blockSize;
-            ipSizeCheck = spaceConfig.v4.ipSizeCheck;
-            splitChar = spaceConfig.v4.splitChar;
-        } else {
-            blockSize = spaceConfig.v6.blockSize;
-            ipSizeCheck = spaceConfig.v6.ipSizeCheck;
-            splitChar = spaceConfig.v6.splitChar;
-        }
-
-        const ip1Blocks = ip1.split(splitChar);
-        const ip2Blocks = ip2.split(splitChar);
-
-        let bits = 0;
-
-        for (let n=0; n<= ip1Blocks.length; n++) {
-            if (ip1Blocks[n] === ip2Blocks[n]) {
-                bits += blockSize;
-            } else {
-                break;
-            }
-        }
-
-        return this._compositeRange(ip1, ip2, bits, af, ipSizeCheck);
+    ipRangeToCidr: function (ip1, ip2) {
+        return new IpRange(IpAddress.of(ip1), IpAddress.of(ip2)).toCidrs().map(i => i.toString());
     },
 
     _compositeRange: function (ip1, ip2, bits, af, ipSizeCheck) {

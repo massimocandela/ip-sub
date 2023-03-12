@@ -30,7 +30,9 @@
     "mocha": "^10.2.0",
     "release-it": "^15.8.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "cidr-calc": "^1.0.3"
+  },
   "release-it": {
     "hooks": {
       "before:init": [
