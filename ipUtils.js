@@ -168,6 +168,13 @@ const ip = {
         }
     },
 
+    expandPrefix: function (prefix, shortenedIpv6) {
+        const [ip, bits] = this.getIpAndCidr(prefix);
+
+        return [this.expandIP(ip, shortenedIpv6), bits].join("/");
+
+    },
+
     _expandIPv4: function(ip) {
         let count = 0;
         for(let i = 0; i<ip.length; i++)

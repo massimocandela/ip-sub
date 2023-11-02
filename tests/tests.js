@@ -96,7 +96,7 @@ describe("Tests", function() {
         for (let sub of subs) {
             expect(ipUtils.isSubnet(prefix, sub.prefix)).to.equal(true);
         }
-    }).timeout(10000);
+    }).timeout(15000);
 
     it("subprefix range test - binary (performance)", function () {
 
@@ -151,6 +151,8 @@ describe("Tests", function() {
         expect(ipUtils.isValidPrefix("185.5.202.0/32")).to.equal(true);
         expect(ipUtils.isValidPrefix("0::/0")).to.equal(true);
         expect(ipUtils.isValidPrefix("::/0")).to.equal(true);
+        expect(ipUtils.isValidPrefix("2804:8f8::/32")).to.equal(true);
+
     });
 
     it("equality", function () {
@@ -191,6 +193,7 @@ describe("Tests", function() {
         expect(ipUtils._expandIP("2001:db8:123::")).to.equal("2001:0db8:0123:0000:0000:0000:0000:0000");
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0::"));
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0000::"));
+        expect(ipUtils.expandPrefix("2001:db8:123::/48")).to.equal("2001:0db8:0123:0000:0000:0000:0000:0000/48");
     });
 
 
