@@ -194,6 +194,13 @@ describe("Tests", function() {
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0::"));
         expect(ipUtils._expandIP("2001:db8::")).to.equal(ipUtils._expandIP("2001:db8:0000::"));
         expect(ipUtils.expandPrefix("2001:db8:123::/48")).to.equal("2001:0db8:0123:0000:0000:0000:0000:0000/48");
+        expect(ipUtils.expandPrefix("2001:0db8:0123:0000:0000:0000:0000:0000/48")).to.equal("2001:0db8:0123:0000:0000:0000:0000:0000/48");
+
+
+        expect(ipUtils.shortenPrefix("2001:0db8:0123:0000:0000:0000:0000:0000/48")).to.equal("2001:db8:123::/48");
+        expect(ipUtils.shortenIP("2001:0db8:0123:0000:0000:0000:0000:0000")).to.equal("2001:db8:123::");
+        expect(ipUtils.shortenIP("1.3.2.3")).to.equal("1.3.2.3");
+
     });
 
 
@@ -210,22 +217,22 @@ describe("Tests", function() {
     }).timeout(20000);
 
     it("add cidr", function () {
-        expect(ipUtils.addCidr("216.168.129.0"))
+        expect(ipUtils.toPrefix("216.168.129.0"))
             .to.equal("216.168.129.0/32");
 
-        expect(ipUtils.addCidr("216.168.129.0/28"))
+        expect(ipUtils.toPrefix("216.168.129.0/28"))
             .to.equal("216.168.129.0/28");
 
-        expect(ipUtils.addCidr("216.168.129.0/32"))
+        expect(ipUtils.toPrefix("216.168.129.0/32"))
             .to.equal("216.168.129.0/32");
 
-        expect(ipUtils.addCidr("2001:db8:0000::"))
+        expect(ipUtils.toPrefix("2001:db8:0000::"))
             .to.equal("2001:db8:0000::/128");
 
-        expect(ipUtils.addCidr("2001:db8:0000::/64"))
+        expect(ipUtils.toPrefix("2001:db8:0000::/64"))
             .to.equal("2001:db8:0000::/64");
 
-        expect(ipUtils.addCidr("2001:db8:0000::/128"))
+        expect(ipUtils.toPrefix("2001:db8:0000::/128"))
             .to.equal("2001:db8:0000::/128");
 
     }).timeout(20000);

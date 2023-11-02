@@ -549,6 +549,16 @@ const ip = {
 
     },
 
+    shortenIP: function (ip) {
+        return IpAddress.of(ip).shortNotation();
+    },
+
+    shortenPrefix: function (prefix) {
+        const [ip, bits] = this.getIpAndCidr(prefix);
+
+        return [IpAddress.of(ip).shortNotation(), bits].join("/");
+    },
+
     // DEPRECATIONS
     getIpAndNetmask: function (prefix) {
         return this.getIpAndCidr(prefix);
@@ -561,7 +571,7 @@ const ip = {
     },
     addCidr: function (prefix) {
         return this.toPrefix(prefix);
-    },
+    }
 };
 
 module.exports = ip;
