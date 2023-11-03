@@ -550,13 +550,13 @@ const ip = {
     },
 
     shortenIP: function (ip) {
-        return IpAddress.of(ip).shortNotation();
+        return IpAddress.of(ip).shortNotation().toLowerCase();
     },
 
     shortenPrefix: function (prefix) {
         const [ip, bits] = this.getIpAndCidr(prefix);
 
-        return [IpAddress.of(ip).shortNotation(), bits].join("/");
+        return [this.shortenIP(ip), bits].join("/");
     },
 
     // DEPRECATIONS
