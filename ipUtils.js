@@ -247,7 +247,10 @@ const ip = {
         const components1 = this.getIpAndCidr(prefix1);
         const components2 = this.getIpAndCidr(prefix2);
 
-        return components1[1] === components2[1] && this._isEqualIP(components1[0], components2[0], af);
+        const ip1 = this._applyNetmask(this._expandIP(components1[0], af), components1[1], af);
+        const ip2 = this._applyNetmask(this._expandIP(components2[0], af), components2[1], af);
+
+        return components1[1] === components2[1] && ip1 === ip2;
     },
 
     getAddressFamily: function(ip) {

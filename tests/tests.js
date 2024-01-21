@@ -171,8 +171,21 @@ describe("Tests", function() {
         expect(ipUtils.isEqualPrefix("2001:db8:123::/48", "2001:db8:123::/48")).to.equal(true);
         expect(ipUtils.isEqualPrefix("2001:db8:123::/48", "2001:db8:123::/49")).to.equal(false);
         expect(ipUtils.isEqualPrefix("2001:db8::/48", "2001:db8:0000::/48")).to.equal(true);
+        expect(ipUtils.isEqualPrefix("2001:db8::/48", "2001:db9::/48")).to.equal(false);
+        expect(ipUtils.isEqualPrefix("2001:db8::/48", "2001:db8:0000::/48")).to.equal(true);
+        expect(ipUtils.isEqualPrefix("2001:db8::/48", "2001:db8:0001::/48")).to.equal(false);
+        expect(ipUtils.isEqualPrefix("2001:db8::/48", "2001:db8::/47")).to.equal(false);
+        expect(ipUtils.isEqualPrefix("2001:db8::/47", "2001:0db8:0001:ffff:ffff:ffff:ffff:ffff/47")).to.equal(true);
+        expect(ipUtils.isEqualPrefix("2001:db8::/47", "2001:0db8:0002:ffff:ffff:ffff:ffff:ffff/47")).to.equal(false);
 
         expect(ipUtils.isEqualPrefix("127.0.0.0/8", "127.0.0.0/8")).to.equal(true);
+        expect(ipUtils.isEqualPrefix("127.0.0.0/8", "130.0.0.0/8")).to.equal(false);
+        expect(ipUtils.isEqualPrefix("127.1.1.1/24", "127.0.0.8/24")).to.equal(false);
+        expect(ipUtils.isEqualPrefix("127.1.1.1/24", "127.1.1.8/24")).to.equal(true);
+        expect(ipUtils.isEqualPrefix("127.1.1.1/24", "127.1.1.8/23")).to.equal(false);
+        expect(ipUtils.isEqualPrefix("127.1.1.1/22", "127.1.2.8/22")).to.equal(true);
+        expect(ipUtils.isEqualPrefix("127.1.1.1/22", "127.1.3.8/22")).to.equal(true);
+        expect(ipUtils.isEqualPrefix("127.1.1.1/22", "127.1.4.8/22")).to.equal(false);
         expect(ipUtils._isEqualPrefix("127/8", "127.0.0.0/8")).to.equal(true);
 
         expect(ipUtils._expandIP("127")).to.equal("127.0.0.0");
