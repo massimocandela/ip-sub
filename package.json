@@ -27,8 +27,8 @@
     "chai": "^4.3.10",
     "chai-subset": "^1.6.0",
     "dotenv-cli": "^7.3.0",
-    "mocha": "^10.2.0",
-    "release-it": "^17.0.1"
+    "mocha": "^10.3.0",
+    "release-it": "^17.0.5"
   },
   "dependencies": {
     "cidr-calc": "^1.0.4"
