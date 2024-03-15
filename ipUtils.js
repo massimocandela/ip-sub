@@ -541,12 +541,17 @@ const ip = {
 
     toPrefix: function (ipOrPrefix) {
         if (this.isValidPrefix(ipOrPrefix)) {
-            return ipOrPrefix;
+            const [ip, cidr] = this.getIpAndCidr(ipOrPrefix);
+            const af = this.getAddressFamily(ip);
+            const binaryIp = this._getPaddedNetmask(this.applyNetmask(ipOrPrefix, af), af);
+
+            return this.shortenPrefix(`${this.fromBinary(binaryIp, af)}/${cidr}`);
+
         } else if (this.isValidIP(ipOrPrefix)) {
             if (this.getAddressFamily(ipOrPrefix) === 4) {
-                return `${ipOrPrefix}/${spaceConfig.v4.bits}`;
+                return this.toPrefix(`${ipOrPrefix}/${spaceConfig.v4.bits}`);
             } else {
-                return `${ipOrPrefix}/${spaceConfig.v6.bits}`;
+                return this.toPrefix(`${ipOrPrefix}/${spaceConfig.v6.bits}`);
             }
         }
 

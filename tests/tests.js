@@ -240,13 +240,13 @@ describe("Tests", function() {
             .to.equal("216.168.129.0/32");
 
         expect(ipUtils.toPrefix("2001:db8:0000::"))
-            .to.equal("2001:db8:0000::/128");
+            .to.equal("2001:db8::/128");
 
         expect(ipUtils.toPrefix("2001:db8:0000::/64"))
-            .to.equal("2001:db8:0000::/64");
+            .to.equal("2001:db8::/64");
 
-        expect(ipUtils.toPrefix("2001:db8:0000::/128"))
-            .to.equal("2001:db8:0000::/128");
+        expect(ipUtils.toPrefix("2001:db8::/128"))
+            .to.equal("2001:db8::/128");
 
     }).timeout(20000);
 
@@ -261,13 +261,13 @@ describe("Tests", function() {
             .to.equal("216.168.129.0/32");
 
         expect(ipUtils.toPrefix("2001:db8:0000::"))
-            .to.equal("2001:db8:0000::/128");
+            .to.equal("2001:db8::/128");
 
         expect(ipUtils.toPrefix("2001:db8:0000::/64"))
-            .to.equal("2001:db8:0000::/64");
+            .to.equal("2001:db8::/64");
 
-        expect(ipUtils.toPrefix("2001:db8:0000::/128"))
-            .to.equal("2001:db8:0000::/128");
+        expect(ipUtils.toPrefix("2001:db8::/128"))
+            .to.equal("2001:db8::/128");
 
     }).timeout(20000);
 
@@ -347,6 +347,17 @@ describe("Tests", function() {
 
         expect(ipUtils.cidrToRange("216.168.236.112/28").join("-")).to.equal("216.168.236.112-216.168.236.127");
         expect(ipUtils.cidrToRange("2002:db0::/32").join("-")).to.equal("2002:db0:0:0:0:0:0:0-2002:db0:ffff:ffff:ffff:ffff:ffff:ffff");
+
+    });
+
+    it("to prefix", function () {
+
+        expect(ipUtils.toPrefix("216.168.236.112/8")).to.equal("216.0.0.0/8");
+        expect(ipUtils.toPrefix("216.168.236.112/32")).to.equal("216.168.236.112/32");
+
+        expect(ipUtils.toPrefix("2001:db8::5/16")).to.equal("2001::/16");
+        expect(ipUtils.toPrefix("2001:db8::/32")).to.equal("2001:db8::/32");
+        expect(ipUtils.toPrefix("2001:db8::1/128")).to.equal("2001:db8::1/128");
 
     });
 });
