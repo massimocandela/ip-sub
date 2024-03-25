@@ -126,6 +126,7 @@ describe("Tests", function() {
         expect(ipUtils.isValidIP(null)).to.equal(false);
         expect(ipUtils.isValidIP("2001:db8:123::")).to.equal(true);
         expect(ipUtils.isValidIP("::ffff:0:0")).to.equal(true);
+        expect(ipUtils.isValidIP("::ffff::0:0")).to.equal(false);
         expect(ipUtils.isValidIP("::")).to.equal(true);
         expect(ipUtils.isValidIP("::1")).to.equal(true);
         expect(ipUtils.isValidIP("2001:db8:123::/64")).to.equal(false);
