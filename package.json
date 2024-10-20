@@ -65,14 +65,15 @@
       "release": false
     },
     "npm": {
-      "publish": false
+      "publish": true
     },
     "github": {
       "release": true,
       "releaseName": "v${version}",
       "tokenRef": "GITHUB_TOKEN",
       "origin": null,
-      "skipChecks": false
+      "skipChecks": false,
+      "assets": []
     }
   }
 }
