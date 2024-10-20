@@ -11,7 +11,7 @@
     "registry": "https://registry.npmjs.com/"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --exit tests",
+    "test": "mocha --exit tests",
     "release": "dotenv release-it"
   },
   "keywords": [
