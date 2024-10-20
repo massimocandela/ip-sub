@@ -1,6 +1,6 @@
 {
   "name": "ip-sub",
-  "version": "1.5.9",
+  "version": "1.5.10",
   "description": "A set of utilities for IP/prefix validation and subnet matching.",
   "main": "ipUtils.js",
   "repository": {
@@ -59,8 +59,7 @@
       "push": true,
       "pushArgs": [
         "--follow-tags"
-      ],
-      "pushRepo": ""
+      ]
     },
     "gitlab": {
       "release": false
