@@ -24,7 +24,7 @@
   "author": "Massimo Candela",
   "license": "MIT",
   "devDependencies": {
-    "chai": "^4.3.10",
+    "chai": "^5.1.2",
     "chai-subset": "^1.6.0",
     "dotenv-cli": "^7.4.2",
     "mocha": "^10.7.3",
