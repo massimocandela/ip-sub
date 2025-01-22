@@ -362,4 +362,20 @@ describe("Tests", function() {
         expect(ipUtils.toPrefix("2001:db8::1/128")).to.equal("2001:db8::1/128");
 
     });
+
+    it("valid cidr", function () {
+
+        expect(ipUtils.isValidCIDR("123.1.0.0/32")).to.equal(true);
+        expect(ipUtils.isValidCIDR("123.1.0.0/19")).to.equal(true);
+        expect(ipUtils.isValidCIDR("123.1.0.0/16")).to.equal(true);
+        expect(ipUtils.isValidCIDR("123.1.0.0/15")).to.equal(false);
+        expect(ipUtils.isValidCIDR("123.1.0.0/14")).to.equal(false);
+        expect(ipUtils.isValidCIDR("123.1.0.0/13")).to.equal(false);
+
+        expect(ipUtils.isValidCIDR("2001:db8::1/128")).to.equal(true);
+        expect(ipUtils.isValidCIDR("2001:db8::/32")).to.equal(true);
+        expect(ipUtils.isValidCIDR("2001:db8::/16")).to.equal(false);
+    });
 });
+
+

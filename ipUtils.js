@@ -1,4 +1,4 @@
-const { IpAddress, IpRange } = require("cidr-calc");
+const {IpAddress, IpRange} = require("cidr-calc");
 
 const cache = {
     v4: {},
@@ -26,11 +26,11 @@ const spaceConfig = {
 
 const ip = {
 
-    getIpAndCidr: function(prefix) {
+    getIpAndCidr: function (prefix) {
         let bits, ip;
 
-        for (let n=prefix.length - 1; n>=0; n--) {
-            if (prefix[n] == '/') {
+        for (let n = prefix.length - 1; n >= 0; n--) {
+            if (prefix[n] == "/") {
                 ip = prefix.slice(0, n);
                 bits = prefix.slice(n + 1);
                 if (bits !== "" && !isNaN(bits)) {
@@ -41,7 +41,7 @@ const ip = {
         throw new Error("Not valid prefix");
     },
 
-    isValidPrefix: function(prefix){
+    isValidPrefix: function (prefix) {
         try {
             return this._isValidPrefix(prefix, this.getAddressFamily(prefix));
         } catch (error) {
@@ -49,7 +49,7 @@ const ip = {
         }
     },
 
-    _isValidPrefix: function(prefix, af){
+    _isValidPrefix: function (prefix, af) {
         let bits, ip;
 
         if (prefix !== prefix.trim()) {
@@ -72,7 +72,7 @@ const ip = {
         }
     },
 
-    isValidIP: function(ip) {
+    isValidIP: function (ip) {
         try {
             return this._isValidIP(ip, this.getAddressFamily(ip));
         } catch (error) {
@@ -80,7 +80,22 @@ const ip = {
         }
     },
 
-    _isValidIP: function(ip, af) {
+    _isValidCIDR: function (cidr) {
+        const [ip, bits] = this.getIpAndCidr(cidr);
+        const ntBin = this.toBinary(ip).slice(bits);
+
+        return ntBin.replaceAll("0", "").length === 0;
+    },
+
+    isValidCIDR: function (cidr) {
+        try {
+            return this.isValidPrefix(cidr) && this._isValidCIDR(cidr);
+        } catch (error) {
+            return false;
+        }
+    },
+
+    _isValidIP: function (ip, af) {
         try {
             if (!ip.includes("/")) {
                 if (af === 4) {
@@ -120,7 +135,7 @@ const ip = {
         }
     },
 
-    getPieces: function(ip) {
+    getPieces: function (ip) {
         const af = this.getAddressFamily(ip);
 
         if (af === 4) {
@@ -134,7 +149,7 @@ const ip = {
         const piecesA = this.getPieces(ipA);
         const piecesB = this.getPieces(ipB);
 
-        for (let n=0; n<piecesA.length; n++) {
+        for (let n = 0; n < piecesA.length; n++) {
             if (piecesA[n] < piecesB[n]) {
                 return -1;
             } else if (piecesA[n] > piecesB[n]) {
@@ -145,20 +160,20 @@ const ip = {
         return 0;
     },
 
-    _v6Pad: function(ip){
-        return parseInt(ip, 16).toString(2).padStart(spaceConfig.v6.blockSize, '0');
+    _v6Pad: function (ip) {
+        return parseInt(ip, 16).toString(2).padStart(spaceConfig.v6.blockSize, "0");
     },
 
-    _v4Pad: function(ip){
-        return parseInt(ip).toString(2).padStart(spaceConfig.v4.blockSize, '0');
+    _v4Pad: function (ip) {
+        return parseInt(ip).toString(2).padStart(spaceConfig.v4.blockSize, "0");
     },
 
-    _expandIP: function(ip, af, shortenedIpv6) {
+    _expandIP: function (ip, af, shortenedIpv6) {
         af = af || this.getAddressFamily(ip);
         return (af === 4) ? this._expandIPv4(ip) : this._expandIPv6(ip, shortenedIpv6);
     },
 
-    expandIP: function(ip, shortenedIpv6) {
+    expandIP: function (ip, shortenedIpv6) {
         const af = this.getAddressFamily(ip);
 
         if (this._isValidIP(ip, af)) {
@@ -175,20 +190,22 @@ const ip = {
 
     },
 
-    _expandIPv4: function(ip) {
+    _expandIPv4: function (ip) {
         let count = 0;
-        for(let i = 0; i<ip.length; i++)
-            if(ip[i] === '.')
+        for (let i = 0; i < ip.length; i++) {
+            if (ip[i] === ".") {
                 count++;
+            }
+        }
 
-        for (let n=count; n<3; n++) {
-            ip += '.0';
+        for (let n = count; n < 3; n++) {
+            ip += ".0";
         }
 
         return ip;
     },
 
-    _expandIPv6: function(ip, shortenedIpv6) {
+    _expandIPv6: function (ip, shortenedIpv6) {
         ip = ip.toLowerCase();
         const segments = ip.split(spaceConfig.v6.splitChar);
         const count = segments.length - 1;
@@ -198,28 +215,28 @@ const ip = {
                 if (segment.length && segment == 0) { // Weak equality
                     return "0";
                 } else {
-                    return segment || ""
+                    return segment || "";
                 }
             })
             .join(spaceConfig.v6.splitChar);
 
         if (count !== 7) {
-            const extra = ':' + (new Array(8 - count).fill(0)).join(':') + ':';
+            const extra = ":" + (new Array(8 - count).fill(0)).join(":") + ":";
 
             ip = ip.replace("::", extra);
 
-            if (ip[0] === ':') {
-                ip = '0' + ip;
+            if (ip[0] === ":") {
+                ip = "0" + ip;
             }
-            if (ip[ip.length - 1] === ':') {
-                ip += '0';
+            if (ip[ip.length - 1] === ":") {
+                ip += "0";
             }
         }
 
         return shortenedIpv6 ? ip : ip.split(":").map(i => ("0000" + i).slice(-4)).join(":");
     },
 
-    isEqualIP: function(ip1, ip2) {
+    isEqualIP: function (ip1, ip2) {
         const af1 = this.getAddressFamily(ip1);
         const af2 = this.getAddressFamily(ip2);
         if (this._isValidIP(ip1, af1) && this._isValidIP(ip2, af2)) {
@@ -229,7 +246,7 @@ const ip = {
         }
     },
 
-    isEqualPrefix: function(prefix1, prefix2) {
+    isEqualPrefix: function (prefix1, prefix2) {
         const af1 = this.getAddressFamily(prefix1);
         const af2 = this.getAddressFamily(prefix2);
         if (this._isValidPrefix(prefix1, af1) && this._isValidPrefix(prefix2, af2)) {
@@ -239,11 +256,11 @@ const ip = {
         }
     },
 
-    _isEqualIP: function(ip1, ip2, af) {
+    _isEqualIP: function (ip1, ip2, af) {
         return this._expandIP(ip1, af) === this._expandIP(ip2, af);
     },
 
-    _isEqualPrefix: function(prefix1, prefix2, af) {
+    _isEqualPrefix: function (prefix1, prefix2, af) {
         const components1 = this.getIpAndCidr(prefix1);
         const components2 = this.getIpAndCidr(prefix2);
 
@@ -253,7 +270,7 @@ const ip = {
         return components1[1] === components2[1] && ip1 === ip2;
     },
 
-    getAddressFamily: function(ip) {
+    getAddressFamily: function (ip) {
         try {
             return (ip.indexOf(spaceConfig.v6.splitChar) === -1) ? 4 : 6;
         } catch (error) {
@@ -265,7 +282,7 @@ const ip = {
         return this._toBinary(ip, this.getAddressFamily(ip));
     },
 
-    _toBinary: function(ip, af) {
+    _toBinary: function (ip, af) {
         let bytes = "";
         let pad, splitter;
         let point = 0;
@@ -283,7 +300,7 @@ const ip = {
             internalCache = cache.v6;
         }
 
-        for (let n=1; n<ip.length; n++) {
+        for (let n = 1; n < ip.length; n++) {
             if (ip[n] == splitter) {
 
                 const segment = ip.slice(point, n);
@@ -304,7 +321,7 @@ const ip = {
         return bytes;
     },
 
-    applyNetmask: function(prefix, af) {
+    applyNetmask: function (prefix, af) {
         const components = this.getIpAndCidr(prefix);
         const ip = components[0];
         const bits = components[1];
@@ -313,19 +330,19 @@ const ip = {
         return this._applyNetmask(ip, bits, af);
     },
 
-    _applyNetmask: function(ip, bits, af) {
-        if (af === 4){
-            return this._toBinary(ip, af).padEnd(spaceConfig.v4.bits, '0').slice(0, bits);
+    _applyNetmask: function (ip, bits, af) {
+        if (af === 4) {
+            return this._toBinary(ip, af).padEnd(spaceConfig.v4.bits, "0").slice(0, bits);
         } else {
-            return this._toBinary(ip, af).padEnd(spaceConfig.v6.bits, '0').slice(0, bits);
+            return this._toBinary(ip, af).padEnd(spaceConfig.v6.bits, "0").slice(0, bits);
         }
     },
 
     _getPaddedNetmask: function (binary, af) {
-        if (af === 4){
-            return binary.padEnd(spaceConfig.v4.bits, '0');
+        if (af === 4) {
+            return binary.padEnd(spaceConfig.v4.bits, "0");
         } else {
-            return binary.padEnd(spaceConfig.v6.bits, '0');
+            return binary.padEnd(spaceConfig.v6.bits, "0");
         }
     },
 
@@ -359,12 +376,12 @@ const ip = {
         const bits = components[1];
         let first, last;
 
-        if (af === 4){
-            first = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v4.bits, '0');
-            last = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v4.bits, '1');
+        if (af === 4) {
+            first = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v4.bits, "0");
+            last = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v4.bits, "1");
         } else {
-            first = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v6.bits, '0');
-            last = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v6.bits, '1');
+            first = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v6.bits, "0");
+            last = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v6.bits, "1");
         }
 
         first = this.fromBinary(first, af);
@@ -392,15 +409,15 @@ const ip = {
             splitter = spaceConfig.v4.splitChar;
             mapper = function (bin) {
                 return parseInt(bin, 2);
-            }
+            };
         } else {
             blockSize = spaceConfig.v6.blockSize;
             splitter = spaceConfig.v6.splitChar;
             mapper = function (bin) {
                 return parseInt(bin, 2).toString(16);
-            }
+            };
         }
-        const components = ip.match(new RegExp('.{1,' + blockSize + '}', 'g')).map(mapper);
+        const components = ip.match(new RegExp(".{1," + blockSize + "}", "g")).map(mapper);
 
         return components.join(splitter);
     },
@@ -427,11 +444,11 @@ const ip = {
                     netMaskIndex[msk] = true;
                 }
 
-                components[position] ++;
+                components[position]++;
             }
 
         } else {
-            let components = this._getComponents(this._expandIP(ip, af), af)
+            let components = this._getComponents(this._expandIP(ip, af), af);
             if (bits >= spaceConfig.v6.ipSizeCheck) {
                 return [];
             }
@@ -447,7 +464,7 @@ const ip = {
                     netMaskIndex[msk] = true;
                 }
 
-                item ++;
+                item++;
                 components[position] = item.toString(16);
             }
 
@@ -472,7 +489,7 @@ const ip = {
 
         while (next) {
             out.push(next);
-            next = this._getNextSiblingPrefix(...next, parentBits)
+            next = this._getNextSiblingPrefix(...next, parentBits);
         }
 
         return out.map(i => i[0] + "/" + i[1]);
@@ -507,7 +524,7 @@ const ip = {
     _compositeRange: function (ip1, ip2, bits, af, ipSizeCheck) {
         let mPrefixes = [];
 
-        for (let b=bits; b <= ipSizeCheck; b++){
+        for (let b = bits; b <= ipSizeCheck; b++) {
             const tested = `${ip1}/${b}`;
             mPrefixes.push(tested);
             mPrefixes = mPrefixes.concat(this._getAllSiblings(ip1, b, af, bits));
@@ -524,7 +541,7 @@ const ip = {
             .filter(prefix => {
                 const range = this._cidrToRange(prefix, af).map(ip => this._toBinary(ip, af));
 
-                return  range[0] >= start && range[1] <= stop;
+                return range[0] >= start && range[1] <= stop;
             })
             .sort((a, b) => this.sortByPrefixLength(a, b));
 
@@ -571,7 +588,7 @@ const ip = {
     getIpAndNetmask: function (prefix) {
         return this.getIpAndCidr(prefix);
     },
-    getNetmask: function(prefix, af) {
+    getNetmask: function (prefix, af) {
         return this.applyNetmask(prefix, af);
     },
     _getNetmask: function (ip, bits, af) {
