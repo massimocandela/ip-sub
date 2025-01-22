@@ -3,12 +3,10 @@
   "version": "1.6.1",
   "description": "A set of utilities for IP/prefix validation and subnet matching.",
   "main": "ipUtils.js",
+  "bin": "ipUtils.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/massimocandela/ip-sub.git"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.com/"
   },
   "scripts": {
     "test": "mocha --exit tests",
@@ -21,14 +19,17 @@
     "subnet",
     "netmask"
   ],
-  "author": "Massimo Candela",
+  "author": {
+    "name": "Massimo Candela",
+    "url": "https://massimocandela.com"
+  },
   "license": "MIT",
   "devDependencies": {
     "chai": "^4.3.10",
     "chai-subset": "^1.6.0",
     "dotenv-cli": "^7.4.2",
     "mocha": "^10.7.3",
-    "release-it": "^17.6.0"
+    "release-it": "^17.10.0"
   },
   "dependencies": {
     "cidr-calc": "^1.0.4"
@@ -59,7 +60,8 @@
       "push": true,
       "pushArgs": [
         "--follow-tags"
-      ]
+      ],
+      "pushRepo": ""
     },
     "gitlab": {
       "release": false
@@ -72,8 +74,7 @@
       "releaseName": "v${version}",
       "tokenRef": "GITHUB_TOKEN",
       "origin": null,
-      "skipChecks": false,
-      "assets": []
+      "skipChecks": false
     }
   }
 }
