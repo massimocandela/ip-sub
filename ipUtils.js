@@ -84,7 +84,7 @@ const ip = {
         const [ip, bits] = this.getIpAndCidr(cidr);
         const ntBin = this.toBinary(ip).slice(bits);
 
-        return ntBin.replaceAll("0", "").length === 0;
+        return /^[0]*$/.test(ntBin);
     },
 
     isValidCIDR: function (cidr) {
