@@ -5,7 +5,7 @@
   "main": "ipUtils.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/massimocandela/ip-sub.git"
+    "url": "https://github.com/massimocandela/ip-sub.git"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.com/"
