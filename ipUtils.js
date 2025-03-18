@@ -584,6 +584,17 @@ const ip = {
         return [this.shortenIP(ip), bits].join("/");
     },
 
+    getAllLessSpecificBinaries : function (prefix) {
+        const binary = this.applyNetmask(prefix);
+        const out = [];
+
+        for (let i = 1; i <= binary.length; i++) {
+            out.push(binary.slice(0, i));
+        }
+
+        return out;
+    },
+
     // DEPRECATIONS
     getIpAndNetmask: function (prefix) {
         return this.getIpAndCidr(prefix);

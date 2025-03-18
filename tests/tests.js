@@ -376,6 +376,15 @@ describe("Tests", function() {
         expect(ipUtils.isValidCIDR("2001:db8::/32")).to.equal(true);
         expect(ipUtils.isValidCIDR("2001:db8::/16")).to.equal(false);
     });
+
+    it("getAllLessSpecificBinaries", function () {
+
+        expect(ipUtils.getAllLessSpecificBinaries("123.1.0.0/12").sort().join("-"))
+            .to.equal(["0","01","011","0111","01111","011110","0111101","01111011","011110110","0111101100","01111011000","011110110000"].sort().join("-"));
+
+        expect(ipUtils.getAllLessSpecificBinaries("2001::/16").sort().join("-"))
+            .to.equal(["0","00","001","0010","00100","001000","0010000","00100000","001000000","0010000000","00100000000","001000000000","0010000000000","00100000000000","001000000000000","0010000000000001"].sort().join("-"));
+    });
 });
 
 
