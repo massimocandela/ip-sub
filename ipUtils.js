@@ -584,7 +584,7 @@ const ip = {
         return [this.shortenIP(ip), bits].join("/");
     },
 
-    getAllLessSpecificBinaries : function (prefix) {
+    getAllLessSpecificBinaries: function (prefix) {
         const binary = this.applyNetmask(prefix);
         const out = [];
 
