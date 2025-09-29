@@ -558,11 +558,8 @@ const ip = {
 
     toPrefix: function (ipOrPrefix) {
         if (this.isValidPrefix(ipOrPrefix)) {
-            const [ip, cidr] = this.getIpAndCidr(ipOrPrefix);
-            const af = this.getAddressFamily(ip);
-            const binaryIp = this._getPaddedNetmask(this.applyNetmask(ipOrPrefix, af), af);
 
-            return this.shortenPrefix(`${this.fromBinary(binaryIp, af)}/${cidr}`);
+            return this.shortenPrefix(ipOrPrefix);
 
         } else if (this.isValidIP(ipOrPrefix)) {
             if (this.getAddressFamily(ipOrPrefix) === 4) {
@@ -579,9 +576,11 @@ const ip = {
     },
 
     shortenPrefix: function (prefix) {
-        const [ip, bits] = this.getIpAndCidr(prefix);
+        const [ip, cidr] = this.getIpAndCidr(prefix);
+        const af = this.getAddressFamily(ip);
+        const binaryIp = this._getPaddedNetmask(this.applyNetmask(prefix, af), af);
 
-        return [this.shortenIP(ip), bits].join("/");
+        return `${this.shortenIP(this.fromBinary(binaryIp, af))}/${cidr}`;
     },
 
     getAllLessSpecificBinaries: function (prefix) {
@@ -593,20 +592,6 @@ const ip = {
         }
 
         return out;
-    },
-
-    // DEPRECATIONS
-    getIpAndNetmask: function (prefix) {
-        return this.getIpAndCidr(prefix);
-    },
-    getNetmask: function (prefix, af) {
-        return this.applyNetmask(prefix, af);
-    },
-    _getNetmask: function (ip, bits, af) {
-        return this._applyNetmask(ip, bits, af);
-    },
-    addCidr: function (prefix) {
-        return this.toPrefix(prefix);
     }
 };
 
