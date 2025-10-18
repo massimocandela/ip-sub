@@ -583,11 +583,11 @@ const ip = {
         return `${this.shortenIP(this.fromBinary(binaryIp, af))}/${cidr}`;
     },
 
-    getAllLessSpecificBinaries: function (prefix) {
+    getAllLessSpecificBinaries: function (prefix, includeMoreSpecific = false) {
         const binary = this.applyNetmask(prefix);
-        const out = [];
+        const out = includeMoreSpecific ? [binary] : [];
 
-        for (let i = 1; i <= binary.length; i++) {
+        for (let i = 1; i < binary.length; i++) {
             out.push(binary.slice(0, i));
         }
 
