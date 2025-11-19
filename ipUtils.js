@@ -592,6 +592,22 @@ const ip = {
         }
 
         return out;
+    },
+
+    getNextIp: function (ip) {
+        const af = this.getAddressFamily(ip);
+        const binaryIp = this._toBinary(ip, af);
+        let incremented = (BigInt("0b" + binaryIp) + BigInt(1)).toString(2).padStart(binaryIp.length, "0");
+
+        return this.fromBinary(incremented, af);
+    },
+
+    getPrevIp: function (ip) {
+        const af = this.getAddressFamily(ip);
+        const binaryIp = this._toBinary(ip, af);
+        let decremented = (BigInt("0b" + binaryIp) - BigInt(1)).toString(2).padStart(binaryIp.length, "0");
+
+        return this.fromBinary(decremented, af);
     }
 };
 
