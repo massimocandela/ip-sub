@@ -49,6 +49,14 @@ const ip = {
         }
     },
 
+    isValidNetwork: function (prefix) {
+        try {
+            return this._isValidPrefix(prefix, this.getAddressFamily(prefix)) && ip.toBinary(ip.getNetwork(prefix)) === ip.toBinary(prefix);
+        } catch (error) {
+            return false;
+        }
+    },
+
     _isValidPrefix: function (prefix, af) {
         let bits, ip;
 
@@ -608,7 +616,30 @@ const ip = {
         let decremented = (BigInt("0b" + binaryIp) - BigInt(1)).toString(2).padStart(binaryIp.length, "0");
 
         return this.fromBinary(decremented, af);
+    },
+
+    getUsableAddressesByNetwork: function (networkInCidrNotation, maintainCidr = false) {
+        const [_, cidr] = this.getIpAndCidr(networkInCidrNotation);
+
+        return this._getUsableAddressesByNetwork(networkInCidrNotation, cidr).map(i => maintainCidr ? `${i}/${cidr}` : i);
+    },
+
+    _getUsableAddressesByNetwork: function (networkInCidrNotation, cidr) {
+        const af = this.getAddressFamily(networkInCidrNotation);
+        const range = this._cidrToRange(networkInCidrNotation, af);
+
+        if ((cidr >= 31 && af === 4) || cidr >= 127 && af === 6) {
+
+            return range;
+        }
+
+        return [this.getNextIp(range[0]), this.getPrevIp(range[1])];
+    },
+
+    getNetwork: function (prefix) {
+        return this.shortenPrefix(prefix);
     }
+
 };
 
 module.exports = ip;
