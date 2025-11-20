@@ -618,13 +618,13 @@ const ip = {
         return this.fromBinary(decremented, af);
     },
 
-    getUsableAddressesByNetwork: function (networkInCidrNotation, maintainCidr = false) {
+    getUsableAddressRangeByNetwork: function (networkInCidrNotation, maintainCidr = false) {
         const [_, cidr] = this.getIpAndCidr(networkInCidrNotation);
 
-        return this._getUsableAddressesByNetwork(networkInCidrNotation, cidr).map(i => maintainCidr ? `${i}/${cidr}` : i);
+        return [...new Set(this._getUsableAddressRangeByNetwork(networkInCidrNotation, cidr).map(i => maintainCidr ? `${i}/${cidr}` : i))];
     },
 
-    _getUsableAddressesByNetwork: function (networkInCidrNotation, cidr) {
+    _getUsableAddressRangeByNetwork: function (networkInCidrNotation, cidr) {
         const af = this.getAddressFamily(networkInCidrNotation);
         const range = this._cidrToRange(networkInCidrNotation, af);
 
