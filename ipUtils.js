@@ -583,9 +583,9 @@ const ip = {
         return IpAddress.of(ip).shortNotation().toLowerCase();
     },
 
-    shortenPrefix: function (prefix) {
+    shortenPrefix: function (prefix, af) {
         const [ip, cidr] = this.getIpAndCidr(prefix);
-        const af = this.getAddressFamily(ip);
+        af = af || this.getAddressFamily(ip);
         const binaryIp = this._getPaddedNetmask(this.applyNetmask(prefix, af), af);
 
         return `${this.shortenIP(this.fromBinary(binaryIp, af))}/${cidr}`;
