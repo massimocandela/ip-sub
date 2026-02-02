@@ -41,9 +41,9 @@ const ip = {
         throw new Error("Not valid prefix");
     },
 
-    isValidPrefix: function (prefix) {
+    isValidPrefix: function (prefix, af) {
         try {
-            return this._isValidPrefix(prefix, this.getAddressFamily(prefix));
+            return this._isValidPrefix(prefix, af || this.getAddressFamily(prefix));
         } catch (error) {
             return false;
         }
@@ -565,12 +565,13 @@ const ip = {
     },
 
     toPrefix: function (ipOrPrefix) {
+        const af = this.getAddressFamily(ipOrPrefix);
         if (this.isValidPrefix(ipOrPrefix)) {
 
-            return this.shortenPrefix(ipOrPrefix);
+            return this.shortenPrefix(ipOrPrefix, af);
 
         } else if (this.isValidIP(ipOrPrefix)) {
-            if (this.getAddressFamily(ipOrPrefix) === 4) {
+            if (af === 4) {
                 return this.toPrefix(`${ipOrPrefix}/${spaceConfig.v4.bits}`);
             } else {
                 return this.toPrefix(`${ipOrPrefix}/${spaceConfig.v6.bits}`);
