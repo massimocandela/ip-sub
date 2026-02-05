@@ -25,10 +25,10 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "chai": "^4.3.10",
+    "chai": "^6.2.2",
     "chai-subset": "^1.6.0",
-    "dotenv-cli": "^8.0.0",
-    "mocha": "^10.7.3",
+    "dotenv-cli": "^11.0.0",
+    "mocha": "^11.7.5",
     "release-it": "^19.2.4"
   },
   "dependencies": {
