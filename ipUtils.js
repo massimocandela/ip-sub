@@ -41,9 +41,9 @@ const ip = {
         throw new Error("Not valid prefix");
     },
 
-    isValidPrefix: function (prefix, af) {
+    isValidPrefix: function (prefix) {
         try {
-            return this._isValidPrefix(prefix, af || this.getAddressFamily(prefix));
+            return this._isValidPrefix(prefix, this.getAddressFamily(prefix));
         } catch (error) {
             return false;
         }
