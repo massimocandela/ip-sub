@@ -1,6 +1,6 @@
 const chai = require("chai");
 const ipUtils = require("../ipUtils");
-const chaiSubset = require('chai-subset');
+const chaiSubset = require("chai-subset");
 chai.use(chaiSubset);
 const expect = chai.expect;
 
@@ -12,9 +12,9 @@ const generateTestList = () => {
 
     const binary = ipUtils.applyNetmask(prefix);
 
-    for (let n=0; n<=255; n++) {
-        for (let f=0; f<=255; f++) {
-            for (let s=bits + 1; s<=32; s++) {
+    for (let n = 0; n <= 255; n++) {
+        for (let f = 0; f <= 255; f++) {
+            for (let s = bits + 1; s <= 32; s++) {
                 const prefix = [ip, n, f].join(".") + "/" + s;
                 subs.push({
                     prefix,
@@ -24,11 +24,11 @@ const generateTestList = () => {
         }
     }
 
-    return { prefix, binary, subs };
-}
+    return {prefix, binary, subs};
+};
 
-describe("Tests", function() {
-    const { prefix, subs, binary } = generateTestList();
+describe("Tests", function () {
+    const {prefix, subs, binary} = generateTestList();
 
     it("subprefix test", function () {
 
@@ -110,7 +110,7 @@ describe("Tests", function() {
         const ip = "211.130.0.0";
         const list = [];
 
-        for (let n=8; n<=32; n++) {
+        for (let n = 8; n <= 32; n++) {
             const sub = ip + "/" + n;
             list.push(sub);
         }
@@ -213,6 +213,8 @@ describe("Tests", function() {
 
 
         expect(ipUtils.shortenPrefix("2001:0db8:0123:0000:0000:0000:0000:0000/48")).to.equal("2001:db8:123::/48");
+        expect(ipUtils.shortenPrefix("2001:0db8:0000:0123:0000:0000:0000:0000/64")).to.equal("2001:db8:0:123::/64");
+        expect(ipUtils.shortenIP("2001:0db8:0000:0123:0000:0000:0000:0000")).to.equal("2001:db8:0:123::");
         expect(ipUtils.shortenIP("2001:0db8:0123:0000:0000:0000:0000:0000")).to.equal("2001:db8:123::");
         expect(ipUtils.shortenIP("1.3.2.3")).to.equal("1.3.2.3");
 
@@ -329,7 +331,7 @@ describe("Tests", function() {
             "2002:db0:0000::/128",
             "2001:db1:0000::/128",
             "2001:db2:0000::/128",
-            "2002:db0:0000::/126",
+            "2002:db0:0000::/126"
         ];
 
         const sorted = [
@@ -347,9 +349,25 @@ describe("Tests", function() {
 
     it("cidr to range", function () {
 
-        expect(ipUtils.cidrToRange("216.168.236.112/28").join("-")).to.equal("216.168.236.112-216.168.236.127");
-        expect(ipUtils.cidrToRange("2002:db0::/32").join("-")).to.equal("2002:db0:0:0:0:0:0:0-2002:db0:ffff:ffff:ffff:ffff:ffff:ffff");
+        expect(ipUtils.cidrToRange("10.0.0.0/8").join("-")).to.equal("10.0.0.0-10.255.255.255");
+        expect(ipUtils.cidrToRange("192.168.1.0/24").join("-")).to.equal("192.168.1.0-192.168.1.255");
+        expect(ipUtils.cidrToRange("172.16.4.0/22").join("-")).to.equal("172.16.4.0-172.16.7.255");
+        expect(ipUtils.cidrToRange("8.8.8.8/32").join("-")).to.equal("8.8.8.8-8.8.8.8");
+        expect(ipUtils.cidrToRange("100.64.0.0/10").join("-")).to.equal("100.64.0.0-100.127.255.255");
+        expect(ipUtils.cidrToRange("203.0.113.128/25").join("-")).to.equal("203.0.113.128-203.0.113.255");
+        expect(ipUtils.cidrToRange("198.51.100.0/26").join("-")).to.equal("198.51.100.0-198.51.100.63");
+        expect(ipUtils.cidrToRange("11.0.0.0/9").join("-")).to.equal("11.0.0.0-11.127.255.255");
+        expect(ipUtils.cidrToRange("224.0.0.0/4").join("-")).to.equal("224.0.0.0-239.255.255.255");
 
+        expect(ipUtils.cidrToRange("2002:db0::/32").join("-")).to.equal("2002:db0:0:0:0:0:0:0-2002:db0:ffff:ffff:ffff:ffff:ffff:ffff");
+        expect(ipUtils.cidrToRange("2001:0:db8::/64").join("-")).to.equal("2001:0:db8:0:0:0:0:0-2001:0:db8:0:ffff:ffff:ffff:ffff");
+        expect(ipUtils.cidrToRange("2001:db8:1234::/48").join("-")).to.equal("2001:db8:1234:0:0:0:0:0-2001:db8:1234:ffff:ffff:ffff:ffff:ffff");
+        expect(ipUtils.cidrToRange("2001:db8:abcd::/64").join("-")).to.equal("2001:db8:abcd:0:0:0:0:0-2001:db8:abcd:0:ffff:ffff:ffff:ffff");
+        expect(ipUtils.cidrToRange("2001:db8::1/128").join("-")).to.equal("2001:db8:0:0:0:0:0:1-2001:db8:0:0:0:0:0:1");
+        expect(ipUtils.cidrToRange("::/0").join("-")).to.equal("0:0:0:0:0:0:0:0-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        expect(ipUtils.cidrToRange("fd00::/8").join("-")).to.equal("fd00:0:0:0:0:0:0:0-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        expect(ipUtils.cidrToRange("fe80::/10").join("-")).to.equal("fe80:0:0:0:0:0:0:0-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        expect(ipUtils.cidrToRange("2001:0db8:85a3::/127").join("-")).to.equal("2001:db8:85a3:0:0:0:0:0-2001:db8:85a3:0:0:0:0:1");
     });
 
     it("to prefix", function () {
@@ -380,10 +398,10 @@ describe("Tests", function() {
     it("getAllLessSpecificBinaries", function () {
 
         expect(ipUtils.getAllLessSpecificBinaries("123.1.0.0/12", true).sort().join("-"))
-            .to.equal(["0","01","011","0111","01111","011110","0111101","01111011","011110110","0111101100","01111011000","011110110000"].sort().join("-"));
+            .to.equal(["0", "01", "011", "0111", "01111", "011110", "0111101", "01111011", "011110110", "0111101100", "01111011000", "011110110000"].sort().join("-"));
 
         expect(ipUtils.getAllLessSpecificBinaries("2001::/16", false).sort().join("-"))
-            .to.equal(["0","00","001","0010","00100","001000","0010000","00100000","001000000","0010000000","00100000000","001000000000","0010000000000","00100000000000","001000000000000"].sort().join("-"));
+            .to.equal(["0", "00", "001", "0010", "00100", "001000", "0010000", "00100000", "001000000", "0010000000", "00100000000", "001000000000", "0010000000000", "00100000000000", "001000000000000"].sort().join("-"));
     });
 });
 
