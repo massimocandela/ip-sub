@@ -1,4 +1,3 @@
-
 const cache = {
     v4: {},
     v6: {}
@@ -772,37 +771,48 @@ const ip = {
         return this.shortenPrefix(prefix);
     },
 
+    isReservedRange: function (prefix) {
+
+        if (this.isValidPrefix(prefix)) {
+            const af = this.getAddressFamily(prefix);
+
+            const reservedRanges = af === 4
+                ? [
+                    ...this.IPV4_PRIVATE,
+                    ...this.IPV4_CGNAT,
+                    ...this.IPV4_LOOPBACK,
+                    ...this.IPV4_LINK_LOCAL,
+                    ...this.IPV4_UNSPECIFIED,
+                    ...this.IPV4_DOCUMENTATION,
+                    ...this.IPV4_BENCHMARK,
+                    ...this.IPV4_MULTICAST,
+                    ...this.IPV4_RESERVED_FUTURE,
+                    ...this.IPV4_BROADCAST
+                ]
+                : [
+                    ...this.IPV6_PRIVATE,
+                    ...this.IPV6_LOOPBACK,
+                    ...this.IPV6_UNSPECIFIED,
+                    ...this.IPV6_LINK_LOCAL,
+                    ...this.IPV6_DOCUMENTATION,
+                    ...this.IPV6_MULTICAST,
+                    ...this.IPV6_IPV4_MAPPED
+                ];
+
+            return reservedRanges.some(range => this.isSubnet(range, prefix));
+        } else {
+            throw new Error("Invalid prefix");
+        }
+    },
+
     isReservedIP: function (ip) {
-        const af = this.getAddressFamily(ip);
-
-        const reservedRanges = af === 4
-            ? [
-                ...this.IPV4_PRIVATE,
-                ...this.IPV4_CGNAT,
-                ...this.IPV4_LOOPBACK,
-                ...this.IPV4_LINK_LOCAL,
-                ...this.IPV4_UNSPECIFIED,
-                ...this.IPV4_DOCUMENTATION,
-                ...this.IPV4_BENCHMARK,
-                ...this.IPV4_MULTICAST,
-                ...this.IPV4_RESERVED_FUTURE,
-                ...this.IPV4_BROADCAST
-            ]
-            : [
-                ...this.IPV6_PRIVATE,
-                ...this.IPV6_LOOPBACK,
-                ...this.IPV6_UNSPECIFIED,
-                ...this.IPV6_LINK_LOCAL,
-                ...this.IPV6_DOCUMENTATION,
-                ...this.IPV6_MULTICAST,
-                ...this.IPV6_IPV4_MAPPED
-            ];
-
-
-        return reservedRanges.some(range => this.isSubnet(range, ip));
+        if (this.isValidIP(ip)) {
+            return this.isReservedRange(this.toPrefix(ip));
+        } else {
+            throw new Error("Invalid IP");
+        }
     }
 
 };
 
 module.exports = ip;
-
