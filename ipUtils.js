@@ -1,5 +1,3 @@
-const {IpAddress, IpRange} = require("cidr-calc");
-
 const cache = {
     v4: {},
     v6: {}
@@ -526,7 +524,60 @@ const ip = {
     },
 
     ipRangeToCidr: function (ip1, ip2) {
-        return new IpRange(IpAddress.of(ip1), IpAddress.of(ip2)).toCidrs().map(i => i.toString());
+        // New implementation without external libraries.
+        const af = this.getAddressFamily(ip1);
+        if (af !== this.getAddressFamily(ip2)) {
+            throw new Error("Address families do not match");
+        }
+
+        const bits = spaceConfig[`v${af}`].bits;
+        let startBin = this._toBinary(ip1, af).padStart(bits, "0");
+        let endBin = this._toBinary(ip2, af).padStart(bits, "0");
+
+        let start = BigInt("0b" + startBin);
+        const end = BigInt("0b" + endBin);
+
+        if (start > end) {
+            throw new Error("Start IP is greater than end IP");
+        }
+
+        const out = [];
+
+        while (start <= end) {
+            // count trailing zero bits of start to find max aligned block
+            let maxTz = 0n;
+            // find number of trailing zeros
+            while (((start >> maxTz) & 1n) === 0n && maxTz < BigInt(bits)) {
+                maxTz++;
+            }
+
+            // tzCandidate is the exponent for block size (2^tzCandidate)
+            let tzCandidate = maxTz;
+
+            // reduce block size until block end is within range
+            while (tzCandidate >= 0n) {
+                const blockSize = 1n << tzCandidate;
+                const blockEnd = start + blockSize - 1n;
+                if (blockEnd <= end) {
+                    break;
+                }
+                tzCandidate--;
+            }
+
+            // prefix length = bits - tzCandidate
+            const prefixLen = bits - Number(tzCandidate);
+
+            // convert start BigInt back to binary string and to IP string
+            const binStr = start.toString(2).padStart(bits, "0");
+            const ipStr = this.fromBinary(binStr, af);
+
+            out.push(`${ipStr}/${prefixLen}`);
+
+            // advance start to next block
+            start = start + (1n << tzCandidate);
+        }
+
+        return out;
     },
 
     _compositeRange: function (ip1, ip2, bits, af, ipSizeCheck) {
@@ -581,7 +632,67 @@ const ip = {
     },
 
     shortenIP: function (ip) {
-        return IpAddress.of(ip).shortNotation().toLowerCase();
+        const af = this.getAddressFamily(ip);
+        if (af === 4) {
+            // IPv4: return as-is (no shortening needed)
+            return ip;
+        }
+
+        // IPv6: expand to full 8 hextets padded, then apply RFC-style shortening:
+        // - remove leading zeros from each hextet
+        // - find the longest run of consecutive '0' hextets (length >= 2) and replace with ::
+        const expanded = this._expandIP(ip, 6, false); // fully padded, lowercase
+        const parts = expanded.split(":").map(p => p.toLowerCase());
+
+        // Strip leading zeros in each hextet
+        const stripped = parts.map(p => {
+            const s = p.replace(/^0+/, "");
+            return s === "" ? "0" : s;
+        });
+
+        // Find longest sequence of '0' hextets
+        let maxStart = -1, maxLen = 0;
+        let curStart = -1, curLen = 0;
+        for (let i = 0; i < stripped.length; i++) {
+            if (stripped[i] === "0") {
+                if (curStart === -1) {
+                    curStart = i;
+                    curLen = 1;
+                } else {
+                    curLen++;
+                }
+            } else {
+                if (curLen > maxLen) {
+                    maxLen = curLen;
+                    maxStart = curStart;
+                }
+                curStart = -1;
+                curLen = 0;
+            }
+        }
+        // tail check
+        if (curLen > maxLen) {
+            maxLen = curLen;
+            maxStart = curStart;
+        }
+
+        // Only compress runs of length >= 2
+        if (maxLen < 2) {
+            return stripped.join(":");
+        }
+
+        const head = stripped.slice(0, maxStart).join(":");
+        const tail = stripped.slice(maxStart + maxLen).join(":");
+
+        if (head === "" && tail === "") {
+            return "::";
+        } else if (head === "") {
+            return `::${tail}`;
+        } else if (tail === "") {
+            return `${head}::`;
+        } else {
+            return `${head}::${tail}`;
+        }
     },
 
     shortenPrefix: function (prefix, af) {
@@ -644,3 +755,4 @@ const ip = {
 };
 
 module.exports = ip;
+

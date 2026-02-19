@@ -32,7 +32,6 @@
     "release-it": "^19.2.4"
   },
   "dependencies": {
-    "cidr-calc": "^1.0.4"
   },
   "release-it": {
     "hooks": {
