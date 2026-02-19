@@ -1,3 +1,4 @@
+
 const cache = {
     v4: {},
     v6: {}
@@ -23,6 +24,25 @@ const spaceConfig = {
 };
 
 const ip = {
+
+    IPV4_PRIVATE: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8"],
+    IPV4_CGNAT: ["100.64.0.0/10"],
+    IPV4_LOOPBACK: ["127.0.0.0/8"],
+    IPV4_LINK_LOCAL: ["169.254.0.0/16"],
+    IPV4_UNSPECIFIED: ["0.0.0.0/8"],
+    IPV4_DOCUMENTATION: ["192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24"],
+    IPV4_BENCHMARK: ["198.18.0.0/15"],
+    IPV4_MULTICAST: ["224.0.0.0/4"],
+    IPV4_RESERVED_FUTURE: ["240.0.0.0/4"],
+    IPV4_BROADCAST: ["255.255.255.255/32"],
+
+    IPV6_PRIVATE: ["fc00::/7"],
+    IPV6_LOOPBACK: ["::1/128"],
+    IPV6_UNSPECIFIED: ["::/128"],
+    IPV6_LINK_LOCAL: ["fe80::/10"],
+    IPV6_DOCUMENTATION: ["2001:db8::/32"],
+    IPV6_MULTICAST: ["ff00::/8"],
+    IPV6_IPV4_MAPPED: ["::ffff:0:0/96"],
 
     getIpAndCidr: function (prefix) {
         let bits, ip;
@@ -750,6 +770,36 @@ const ip = {
 
     getNetwork: function (prefix) {
         return this.shortenPrefix(prefix);
+    },
+
+    isReservedIP: function (ip) {
+        const af = this.getAddressFamily(ip);
+
+        const reservedRanges = af === 4
+            ? [
+                ...this.IPV4_PRIVATE,
+                ...this.IPV4_CGNAT,
+                ...this.IPV4_LOOPBACK,
+                ...this.IPV4_LINK_LOCAL,
+                ...this.IPV4_UNSPECIFIED,
+                ...this.IPV4_DOCUMENTATION,
+                ...this.IPV4_BENCHMARK,
+                ...this.IPV4_MULTICAST,
+                ...this.IPV4_RESERVED_FUTURE,
+                ...this.IPV4_BROADCAST
+            ]
+            : [
+                ...this.IPV6_PRIVATE,
+                ...this.IPV6_LOOPBACK,
+                ...this.IPV6_UNSPECIFIED,
+                ...this.IPV6_LINK_LOCAL,
+                ...this.IPV6_DOCUMENTATION,
+                ...this.IPV6_MULTICAST,
+                ...this.IPV6_IPV4_MAPPED
+            ];
+
+
+        return reservedRanges.some(range => this.isSubnet(range, ip));
     }
 
 };
