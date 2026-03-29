@@ -9,7 +9,8 @@
     "url": "https://github.com/massimocandela/ip-sub.git"
   },
   "scripts": {
-    "test": "mocha --exit tests",
+    "test": "mocha --exit tests/tests.js",
+    "benchmark": "node tests/benchmark.js",
     "release": "dotenv release-it"
   },
   "keywords": [
