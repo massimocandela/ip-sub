@@ -404,18 +404,11 @@ const ip = {
         const components = this.getIpAndCidr(prefix);
         const ip = components[0];
         const bits = components[1];
-        let first, last;
+        const totalBits = af === 4 ? spaceConfig.v4.bits : spaceConfig.v6.bits;
+        const bin = this._toBinary(ip, af).slice(0, bits);
 
-        if (af === 4) {
-            first = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v4.bits, "0");
-            last = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v4.bits, "1");
-        } else {
-            first = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v6.bits, "0");
-            last = this._toBinary(ip, af).slice(0, bits).padEnd(spaceConfig.v6.bits, "1");
-        }
-
-        first = this.fromBinary(first, af);
-        last = this.fromBinary(last, af);
+        let first = this.fromBinary(bin.padEnd(totalBits, "0"), af);
+        let last = this.fromBinary(bin.padEnd(totalBits, "1"), af);
 
         return [first, last];
     },
