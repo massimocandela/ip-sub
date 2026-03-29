@@ -27,6 +27,11 @@ const fromBinaryRegex = {
     v6: new RegExp(".{1,16}", "g")
 };
 
+const v6FillStrings = [];
+for (let i = 0; i <= 7; i++) {
+    v6FillStrings[i] = ":" + new Array(8 - i).fill(0).join(":") + ":";
+}
+
 const ip = {
 
     IPV4_PRIVATE: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8"],
@@ -251,9 +256,7 @@ const ip = {
             .join(spaceConfig.v6.splitChar);
 
         if (count !== 7) {
-            const extra = ":" + (new Array(8 - count).fill(0)).join(":") + ":";
-
-            ip = ip.replace("::", extra);
+            ip = ip.replace("::", v6FillStrings[count]);
 
             if (ip[0] === ":") {
                 ip = "0" + ip;
