@@ -22,6 +22,11 @@ const spaceConfig = {
     }
 };
 
+const fromBinaryRegex = {
+    v4: new RegExp(".{1,8}", "g"),
+    v6: new RegExp(".{1,16}", "g")
+};
+
 const ip = {
 
     IPV4_PRIVATE: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8"],
@@ -427,22 +432,20 @@ const ip = {
     },
 
     fromBinary: function (ip, af) {
-        let splitter, blockSize, mapper;
+        let splitter, mapper;
 
         if (af === 4) {
-            blockSize = spaceConfig.v4.blockSize;
             splitter = spaceConfig.v4.splitChar;
             mapper = function (bin) {
                 return parseInt(bin, 2);
             };
         } else {
-            blockSize = spaceConfig.v6.blockSize;
             splitter = spaceConfig.v6.splitChar;
             mapper = function (bin) {
                 return parseInt(bin, 2).toString(16);
             };
         }
-        const components = ip.match(new RegExp(".{1," + blockSize + "}", "g")).map(mapper);
+        const components = ip.match(af === 4 ? fromBinaryRegex.v4 : fromBinaryRegex.v6).map(mapper);
 
         return components.join(splitter);
     },
