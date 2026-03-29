@@ -811,6 +811,44 @@ const ip = {
         } else {
             throw new Error("Invalid IP");
         }
+    },
+
+
+    getAllMorespecificPrefixes: function (prefix) {
+        // Validate prefix
+        if (!this.isValidPrefix(prefix)) {
+            throw new Error("Invalid prefix");
+        }
+
+        const [ip, bits] = this.getIpAndCidr(prefix);
+        const af = this.getAddressFamily(ip);
+
+        // Delegate to getSubPrefixes which already supports recursive listing of more-specific prefixes.
+        // We pass an empty netMaskIndex to ensure uniqueness across generated masks.
+        return this.getSubPrefixes(prefix, true, {}, af);
+    },
+
+    isEqual: function (a, b) {
+        return this.isEqualPrefix(this.toPrefix(a), this.toPrefix(b));
+    },
+
+    unique: function (array) {
+        const seen = new Set();
+        const result = [];
+
+        for (const item of array) {
+            const tmp = this.toPrefix(item);
+            const af = this.getAddressFamily(tmp);
+            const [ip, bits] = this.getIpAndCidr(tmp);
+            const canonical = `${af}-${this._applyNetmask(ip, bits, af)}`;
+
+            if (!seen.has(canonical)) {
+                seen.add(canonical);
+                result.push(item);
+            }
+        }
+
+        return result;
     }
 
 };

@@ -191,6 +191,15 @@ describe("Tests", function () {
         expect(ipUtils._isEqualPrefix("127/8", "127.0.0.0/8")).to.equal(true);
 
         expect(ipUtils._expandIP("127")).to.equal("127.0.0.0");
+
+
+        expect(ipUtils.isEqual("127.0.0.1", "127.0.0.1")).to.equal(true);
+        expect(ipUtils.isEqual("127.0.0.1", "127.0.0.2")).to.equal(false);
+        expect(ipUtils.isEqual("2001:db8:123::", "2001:db8:123:0::0:0")).to.equal(true);
+        expect(ipUtils.isEqual("10.0.0.0/8", "10.0.0.0/8")).to.equal(true);
+        expect(ipUtils.isEqual("10.0.0.0/8", "10.0.0.0/16")).to.equal(false);
+        expect(ipUtils.isEqual("2001:db8::/48", "2001:db8:0000::/48")).to.equal(true);
+        expect(ipUtils.isEqual("127.0.0.1", "127.0.0.1/32")).to.equal(true);
     });
 
     it("netmask test - cache mixup", function () {
@@ -402,6 +411,32 @@ describe("Tests", function () {
 
         expect(ipUtils.getAllLessSpecificBinaries("2001::/16", false).sort().join("-"))
             .to.equal(["0", "00", "001", "0010", "00100", "001000", "0010000", "00100000", "001000000", "0010000000", "00100000000", "001000000000", "0010000000000", "00100000000000", "001000000000000"].sort().join("-"));
+    });
+
+    it("unique", function () {
+        // IPv4 IPs
+        expect(ipUtils.unique(["127.0.0.1", "10.0.0.1", "127.0.0.1"]))
+            .to.deep.equal(["127.0.0.1", "10.0.0.1"]);
+
+        // IPv4 prefixes with equivalent representations
+        expect(ipUtils.unique(["10.0.0.0/8", "10.255.255.255/8", "192.168.0.0/16"]))
+            .to.deep.equal(["10.0.0.0/8", "192.168.0.0/16"]);
+
+        // IPv6 IPs with equivalent representations
+        expect(ipUtils.unique(["2001:db8:123::", "2001:db8:123:0::0:0", "::1"]))
+            .to.deep.equal(["2001:db8:123::", "::1"]);
+
+        // IPv6 prefixes
+        expect(ipUtils.unique(["2001:db8::/48", "2001:db8:0000::/48", "2001:db9::/48"]))
+            .to.deep.equal(["2001:db8::/48", "2001:db9::/48"]);
+
+        // Stability: preserves original order
+        expect(ipUtils.unique(["10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.2", "10.0.0.1"]))
+            .to.deep.equal(["10.0.0.1", "10.0.0.2", "10.0.0.3"]);
+
+        // Empty array
+        expect(ipUtils.unique([]))
+            .to.deep.equal([]);
     });
 });
 
